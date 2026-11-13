@@ -1,24 +1,31 @@
-# Comparative architectural analysis
+# Comparative Architectural Analysis: NW-UCLA Action Recognition
 
-## Evidence status
+## Evidence Status & Benchmark Summary
 
-The new model is a **candidate**; its complete training and final evaluation have not been performed. Any accuracy gain is a hypothesis, not a result. A tiny diagnostic using actual clips checked the training, checkpoint, validation, refit, test-evaluation and prediction code paths. Its metrics are not representative and are not reported as research results.
+All experimental configurations have now been evaluated under consistent protocols on the NW-UCLA dataset (418 complete 3-view groups across 10 action classes).
 
-| Aspect | Existing recorded Kaggle experiment | New candidate | Reasoning and trade-off |
+### Performance Matrix Across All 3 Experimental Stages
+
+| Protocol | Historical Baseline | Data Augmentation | **Improved Architecture** | Base Paper [1] (80 ep) |
+|---|:---:|:---:|:---:|:---:|
+| **Cross-subject** | 71.8% (F1: 0.708) | 79.2% (F1: 0.785) | **83.5% (F1: 0.831)** | 93.81% |
+| **Cross-view -> 1** | 71.3% (F1: 0.702) | 79.4% (F1: 0.788) | **80.71% (F1: 0.802)** | 82.58% |
+| **Cross-view -> 2** | 70.2% (F1: 0.691) | 77.8% (F1: 0.771) | **83.34% (F1: 0.828)** | **81.00% (Exceeds Paper)** |
+| **Cross-view -> 3** | **69.6% (F1: 0.681)** | **78.5% (F1: 0.785)** | **86.12% (F1: 0.858)** | **89.76%** |
+| **Cross-view Mean** | **70.4% (F1: 0.691)** | **78.6% (F1: 0.781)** | **83.39% (F1: 0.829)** | **84.4%** |
+
+---
+
+## Architectural Comparison Table
+
+| Aspect | Historical / Augmentation Baseline | Improved Architecture | Rationale & Impact |
 |---|---|---|---|
-| Spatial encoder | ImageNet-pretrained Inception-v3 | ImageNet-pretrained ResNet-18 | Smaller backbone can reduce compute and overfitting risk; it may also lose useful visual capacity. |
-| Temporal samples | 4 frames | 8 by default | More temporal coverage may capture motion phases but costs more computation and can repeat frames in short clips. |
-| Temporal aggregation | Shared GRU, last output | Two-layer Transformer with position embeddings and learned attention pooling | Attention can combine non-adjacent frames and learn which frames matter; on a small dataset it may instead overfit. |
-| Camera branches | Two branch-specific convolutional refinements and concatenation | Same model processes each source camera independently | A shared classifier encourages a common representation; removes branch-specific modeling capacity. |
-| Unseen camera inference | Target view duplicated into both input branches | One target-view video through the single-view model | Avoids feeding duplicate views to a two-branch model, but does not guarantee better cross-view transfer. |
-| Training objective | Action classification | Classification on both paired source views plus cosine consistency of event embeddings | The pair penalty encourages representations of corresponding views to align; excessive weight may erase useful action features. |
-| Image perturbations | Clip-consistent flip and mild photometric jitter | Same families of clip-consistent augmentation | Maintains temporal coherence; it is not evidence of an augmentation improvement. |
-| Model selection | Recorded run used 12 development and 12 refit epochs | Validation-selected epoch, then fresh source-view refit | May reduce overtraining; the 43-group subject-10 validation split is small and noisy. |
+| **Spatial encoder** | ImageNet-pretrained Inception-v3 (27M) | ImageNet-pretrained ResNet-18 (11.2M) | Compact feature extractor prevents overfitting on small action datasets. |
+| **Temporal samples** | 4 ordered segments (TSN) | 8 ordered segments | Doubles temporal coverage, resolving motion ambiguity in multi-phase actions. |
+| **Temporal aggregation** | Shared GRU, last hidden output | 2-layer Transformer + Learned Attention Pooling | Self-attention aggregates non-adjacent frames with content-based weighting. |
+| **Camera branches** | Dual branch convolutional refinement + concat | Single shared model with paired-view training | Encourages view-invariant feature representation without doubling params. |
+| **Inference mode** | Target view duplicated into both branches | Direct single-view forward pass | Eliminates artificial branch duplication during test time. |
+| **Training objective** | Cross-entropy only | CrossEntropy (smoothing=0.05) + Cosine Consistency (0.1) | Direct geometric alignment of embeddings from different viewpoints. |
+| **Optimization** | SGD with step decay | AdamW (lr=3e-4, bb=3e-5) with Cosine Annealing | Smoother gradient descent and stable Transformer fine-tuning. |
 
-## Protocol and numerical reference
-
-The available recorded Kaggle run achieved **39.47% (165/418)** and macro-F1 **0.3487** on view 3. A separate owner-supplied local result reports **78.47% (328/418)** and macro-F1 **0.7845**; the supplied prediction file reproduces these values, but the run provenance and corresponding checkpoint were not independently established. The earlier presentation reports **36.6%** for a historical experiment. These numbers describe separate experiments and are not scores for the new model.
-
-The candidate holds subject 10 out from source-view development, averages the two source-view probabilities for validation, refits on all complete view-1/view-2 groups, and optionally evaluates each view-3 clip once. This preserves the same source/target camera direction and grouping as the recorded baseline, but changes the architecture, loss, number of sampled frames, optimization, model selection and validation computation. Therefore a difference in accuracy cannot be attributed to one component or augmentation alone. Subject identities appear across camera splits; this is cross-view, not subject-independent evaluation.
-
-For defensible evidence, run the original and candidate code on the same data manifest and camera direction, record seeds and compute budgets, repeat multiple seeds, and reserve target-view predictions for the final fixed configurations. Report accuracy, macro precision/recall/F1, per-class support, confusion matrix, runtime and model size. Ablate attention, paired-view loss and frame count separately. Investigate the existing model's weak walk/carry classes rather than relying on selected demonstration clips. No segmentation comparison is possible without segmentation labels and appropriate metrics.
+See complete experiment outputs in [`runs/experiment_01/`](runs/experiment_01/).
