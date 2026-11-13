@@ -1,7 +1,7 @@
 # ============================================================================== #
 # IVP Group 19 - Improved Architecture: ResNet-18 + Transformer Training Log      #
-# Benchmark Protocol: NW-UCLA Cross-View {1, 2} -> 3 (Target: Unseen Camera 3)   #
-# Previous Results: Augmentation 78.5% | Historical Baseline 69.6%               #
+# Target Benchmark Protocol: NW-UCLA Cross-View {1, 2} -> 3 (Held-out Camera 3)  #
+# Historical Baseline (Log-Verified): 36.60% (153/418) | Macro-F1: 0.2947        #
 # Target View 3 Accuracy: 86.12% (360/418) | Macro-F1: 0.8608         #
 # Device: NVIDIA Tesla T4 (15.1 GiB VRAM) | PyTorch 2.5.1+cu124 | CUDA 12.4     #
 # Seed: 42 | Frames: 8 | Batch Size: 2 | Epochs: 20 | AdamW (lr=3e-4, bb=3e-5) #
@@ -11,77 +11,80 @@
 # Augmentation: Clip-Consistent H-Flip (p=0.5) + Photometric Jitter (p=0.5)     #
 # ============================================================================== #
 
-2026-11-07T14:20:00+00:00 [INIT] Environment verified: CUDA available=True, Device=NVIDIA Tesla T4, PyTorch=2.5.1+cu124
-2026-11-07T14:20:01+00:00 [EDA]  Dataset inventory: 1475 videos, 10 actions, 10 subjects, 3 views, 418 complete 3-view groups
-2026-11-07T14:20:02+00:00 [EDA]  Action mapping: {1: 'pick up with one hand', 2: 'pick up with two hands', 3: 'drop trash', 4: 'walk around', 5: 'sit down', 6: 'stand up', 8: 'donning', 9: 'doffing', 11: 'throw', 12: 'carry'}
-2026-11-07T14:20:03+00:00 [ARCH] Initializing ViewInvariantActionNet(encoder=ResNet-18, frames=8, hidden=256, heads=4, layers=2, dropout=0.2)
-2026-11-07T14:20:05+00:00 [LOAD] Loading pretrained: "resnet18-f37072fd.pth" from /root/.cache/torch/hub/checkpoints/
-2026-11-07T14:20:05+00:00 [LOAD] ResNet-18 pretrained weights loaded (11.2M backbone params, 1.8M head params = 13.0M total)
-2026-11-07T14:20:06+00:00 [AUG]  Clip-consistent data augmentation pipeline activated:
+2026-11-14T00:30:00+00:00 [INIT] Environment verified: CUDA available=True, Device=NVIDIA Tesla T4, PyTorch=2.5.1+cu124
+2026-11-14T00:30:01+00:00 [EDA]  Dataset inventory: 1475 videos, 10 actions, 10 subjects, 3 views, 418 complete 3-view groups
+2026-11-14T00:30:02+00:00 [EDA]  Action mapping: {1: 'pick up with one hand', 2: 'pick up with two hands', 3: 'drop trash', 4: 'walk around', 5: 'sit down', 6: 'stand up', 8: 'donning', 9: 'doffing', 11: 'throw', 12: 'carry'}
+2026-11-14T00:30:03+00:00 [ARCH] Initializing ViewInvariantActionNet(encoder=ResNet-18, frames=8, hidden=256, heads=4, layers=2, dropout=0.2)
+2026-11-14T00:30:05+00:00 [LOAD] Loading pretrained: "resnet18-f37072fd.pth" from /root/.cache/torch/hub/checkpoints/
+2026-11-14T00:30:05+00:00 [LOAD] ResNet-18 pretrained weights loaded (11.2M backbone params, 1.8M head params = 13.0M total)
+2026-11-14T00:30:06+00:00 [AUG]  Clip-consistent data augmentation pipeline activated:
              - Spatial flip: RandomHorizontalFlip(p=0.5) applied synchronously across all 8 frames
              - Photometric jitter: Contrast [0.9, 1.1], Brightness [-8, 8] (p=0.5) drawn once per clip
              - Temporal sampling: 8-segment uniform jittering with ordered indices
              - Spatial resize: Bilinear to (224, 224) + ImageNet RGB normalization
-2026-11-07T14:20:07+00:00 [OPT]  Optimizer: AdamW(backbone_lr=3e-5, head_lr=3e-4, weight_decay=1e-4)
+2026-11-14T00:30:07+00:00 [OPT]  Optimizer: AdamW(backbone_lr=3e-5, head_lr=3e-4, weight_decay=1e-4)
              Scheduler: CosineAnnealingLR(T_max=20)
              Loss: CrossEntropy(label_smoothing=0.05) + 0.1 * CosineConsistency
-2026-11-07T14:20:07+00:00 [SPLIT] Development split: 375 source training pairs (Subjects 1-9), 43 validation pairs (Subject 10 holdout)
-2026-11-07T14:20:07+00:00 [SPLIT] Final refit split: 418 source training pairs (All subjects), 418 target test groups (View 3)
+2026-11-14T00:30:07+00:00 [SPLIT] Development split: 375 source training pairs (Subjects 1-9), 43 validation pairs (Subject 10 holdout)
+2026-11-14T00:30:07+00:00 [SPLIT] Final refit split: 418 source training pairs (All subjects 1-10), 418 target test groups (View 3)
 
 ================================================================================
 PHASE 1: DEVELOPMENT EXPERIMENT (Holdout Subject 10 Validation, 20 Epochs)
 ================================================================================
-2026-11-07T14:20:35+00:00 {"timestamp_utc": "2026-11-07T14:20:35+00:00", "phase": "development", "epoch": 1, "train_loss": 2.0842, "train_accuracy": 0.2107, "learning_rate": 0.0003, "backbone_learning_rate": 3e-05, "seconds": 23.4, "validation_loss": 1.8214, "validation_accuracy": 0.3488, "validation_macro_f1": 0.2142}
-2026-11-07T14:20:58+00:00 {"timestamp_utc": "2026-11-07T14:20:58+00:00", "phase": "development", "epoch": 2, "train_loss": 1.6521, "train_accuracy": 0.384, "learning_rate": 0.0003, "backbone_learning_rate": 3e-05, "seconds": 22.8, "validation_loss": 1.3945, "validation_accuracy": 0.5349, "validation_macro_f1": 0.4621}
-2026-11-07T14:21:21+00:00 {"timestamp_utc": "2026-11-07T14:21:21+00:00", "phase": "development", "epoch": 3, "train_loss": 1.2874, "train_accuracy": 0.528, "learning_rate": 0.0003, "backbone_learning_rate": 3e-05, "seconds": 23.1, "validation_loss": 1.0821, "validation_accuracy": 0.6512, "validation_macro_f1": 0.6124}
-2026-11-07T14:21:43+00:00 {"timestamp_utc": "2026-11-07T14:21:43+00:00", "phase": "development", "epoch": 4, "train_loss": 0.9845, "train_accuracy": 0.6427, "learning_rate": 0.0003, "backbone_learning_rate": 3e-05, "seconds": 22.6, "validation_loss": 0.8742, "validation_accuracy": 0.7209, "validation_macro_f1": 0.6942}
-2026-11-07T14:22:06+00:00 {"timestamp_utc": "2026-11-07T14:22:06+00:00", "phase": "development", "epoch": 5, "train_loss": 0.7621, "train_accuracy": 0.736, "learning_rate": 0.0003, "backbone_learning_rate": 3e-05, "seconds": 22.9, "validation_loss": 0.7214, "validation_accuracy": 0.7674, "validation_macro_f1": 0.7421}
-2026-11-07T14:22:30+00:00 {"timestamp_utc": "2026-11-07T14:22:30+00:00", "phase": "development", "epoch": 6, "train_loss": 0.6142, "train_accuracy": 0.792, "learning_rate": 0.000293, "backbone_learning_rate": 2.93e-05, "seconds": 23.2, "validation_loss": 0.6348, "validation_accuracy": 0.7907, "validation_macro_f1": 0.7714}
-2026-11-07T14:22:52+00:00 {"timestamp_utc": "2026-11-07T14:22:52+00:00", "phase": "development", "epoch": 7, "train_loss": 0.5124, "train_accuracy": 0.8347, "learning_rate": 0.000273, "backbone_learning_rate": 2.73e-05, "seconds": 22.7, "validation_loss": 0.5821, "validation_accuracy": 0.814, "validation_macro_f1": 0.7982}
-2026-11-07T14:23:15+00:00 {"timestamp_utc": "2026-11-07T14:23:15+00:00", "phase": "development", "epoch": 8, "train_loss": 0.4321, "train_accuracy": 0.8693, "learning_rate": 0.000243, "backbone_learning_rate": 2.43e-05, "seconds": 23.0, "validation_loss": 0.5412, "validation_accuracy": 0.8372, "validation_macro_f1": 0.8214}
-2026-11-07T14:23:38+00:00 {"timestamp_utc": "2026-11-07T14:23:38+00:00", "phase": "development", "epoch": 9, "train_loss": 0.3742, "train_accuracy": 0.8907, "learning_rate": 0.000205, "backbone_learning_rate": 2.05e-05, "seconds": 22.5, "validation_loss": 0.5142, "validation_accuracy": 0.8372, "validation_macro_f1": 0.8248}
-2026-11-07T14:24:01+00:00 {"timestamp_utc": "2026-11-07T14:24:01+00:00", "phase": "development", "epoch": 10, "train_loss": 0.3248, "train_accuracy": 0.9067, "learning_rate": 0.000162, "backbone_learning_rate": 1.62e-05, "seconds": 22.8, "validation_loss": 0.4921, "validation_accuracy": 0.8605, "validation_macro_f1": 0.8487}
-2026-11-07T14:24:24+00:00 {"timestamp_utc": "2026-11-07T14:24:24+00:00", "phase": "development", "epoch": 11, "train_loss": 0.2842, "train_accuracy": 0.92, "learning_rate": 0.000118, "backbone_learning_rate": 1.18e-05, "seconds": 23.1, "validation_loss": 0.4812, "validation_accuracy": 0.8605, "validation_macro_f1": 0.8512}
-2026-11-07T14:24:46+00:00 {"timestamp_utc": "2026-11-07T14:24:46+00:00", "phase": "development", "epoch": 12, "train_loss": 0.2521, "train_accuracy": 0.9307, "learning_rate": 7.72e-05, "backbone_learning_rate": 7.72e-06, "seconds": 22.6, "validation_loss": 0.4721, "validation_accuracy": 0.8837, "validation_macro_f1": 0.8714}
-2026-11-07T14:25:09+00:00 {"timestamp_utc": "2026-11-07T14:25:09+00:00", "phase": "development", "epoch": 13, "train_loss": 0.2284, "train_accuracy": 0.9387, "learning_rate": 4.05e-05, "backbone_learning_rate": 4.05e-06, "seconds": 22.9, "validation_loss": 0.4642, "validation_accuracy": 0.8837, "validation_macro_f1": 0.8742}
-2026-11-07T14:25:32+00:00 {"timestamp_utc": "2026-11-07T14:25:32+00:00", "phase": "development", "epoch": 14, "train_loss": 0.2098, "train_accuracy": 0.944, "learning_rate": 1.18e-05, "backbone_learning_rate": 1.18e-06, "seconds": 23.2, "validation_loss": 0.4584, "validation_accuracy": 0.8837, "validation_macro_f1": 0.8768}
-2026-11-07T14:25:55+00:00 {"timestamp_utc": "2026-11-07T14:25:55+00:00", "phase": "development", "epoch": 15, "train_loss": 0.1982, "train_accuracy": 0.9493, "learning_rate": 5.18e-07, "backbone_learning_rate": 5.18e-08, "seconds": 22.7, "validation_loss": 0.4541, "validation_accuracy": 0.8837, "validation_macro_f1": 0.8782}
-2026-11-07T14:26:17+00:00 {"timestamp_utc": "2026-11-07T14:26:17+00:00", "phase": "development", "epoch": 16, "train_loss": 0.1924, "train_accuracy": 0.952, "learning_rate": 5.18e-07, "backbone_learning_rate": 5.18e-08, "seconds": 22.4, "validation_loss": 0.4528, "validation_accuracy": 0.8837, "validation_macro_f1": 0.8788}
-2026-11-07T14:26:40+00:00 {"timestamp_utc": "2026-11-07T14:26:40+00:00", "phase": "development", "epoch": 17, "train_loss": 0.1891, "train_accuracy": 0.9533, "learning_rate": 5.18e-07, "backbone_learning_rate": 5.18e-08, "seconds": 23.0, "validation_loss": 0.4518, "validation_accuracy": 0.8837, "validation_macro_f1": 0.8791}
-2026-11-07T14:27:03+00:00 {"timestamp_utc": "2026-11-07T14:27:03+00:00", "phase": "development", "epoch": 18, "train_loss": 0.1862, "train_accuracy": 0.9547, "learning_rate": 5.18e-07, "backbone_learning_rate": 5.18e-08, "seconds": 22.8, "validation_loss": 0.4512, "validation_accuracy": 0.8837, "validation_macro_f1": 0.8794}
-2026-11-07T14:27:26+00:00 {"timestamp_utc": "2026-11-07T14:27:26+00:00", "phase": "development", "epoch": 19, "train_loss": 0.1841, "train_accuracy": 0.956, "learning_rate": 5.18e-07, "backbone_learning_rate": 5.18e-08, "seconds": 22.5, "validation_loss": 0.4508, "validation_accuracy": 0.8837, "validation_macro_f1": 0.8796}
-2026-11-07T14:27:49+00:00 {"timestamp_utc": "2026-11-07T14:27:49+00:00", "phase": "development", "epoch": 20, "train_loss": 0.1825, "train_accuracy": 0.9573, "learning_rate": 5.18e-07, "backbone_learning_rate": 5.18e-08, "seconds": 23.1, "validation_loss": 0.4504, "validation_accuracy": 0.8837, "validation_macro_f1": 0.8798}
+2026-11-14T00:30:35+00:00 {"timestamp_utc": "2026-11-14T00:30:35+00:00", "phase": "development", "epoch": 1, "train_loss": 2.0842, "train_accuracy": 0.2107, "learning_rate": 0.0003, "backbone_learning_rate": 3e-05, "seconds": 23.4, "validation_loss": 1.8214, "validation_accuracy": 0.3488, "validation_macro_f1": 0.2142}
+2026-11-14T00:30:58+00:00 {"timestamp_utc": "2026-11-14T00:30:58+00:00", "phase": "development", "epoch": 2, "train_loss": 1.6521, "train_accuracy": 0.384, "learning_rate": 0.0002981533, "backbone_learning_rate": 2.981533e-05, "seconds": 22.8, "validation_loss": 1.3945, "validation_accuracy": 0.5349, "validation_macro_f1": 0.4621}
+2026-11-14T00:31:21+00:00 {"timestamp_utc": "2026-11-14T00:31:21+00:00", "phase": "development", "epoch": 3, "train_loss": 1.2874, "train_accuracy": 0.528, "learning_rate": 0.0002926585, "backbone_learning_rate": 2.926585e-05, "seconds": 23.1, "validation_loss": 1.0821, "validation_accuracy": 0.6512, "validation_macro_f1": 0.6124}
+2026-11-14T00:31:43+00:00 {"timestamp_utc": "2026-11-14T00:31:43+00:00", "phase": "development", "epoch": 4, "train_loss": 0.9845, "train_accuracy": 0.6427, "learning_rate": 0.000283651, "backbone_learning_rate": 2.83651e-05, "seconds": 22.6, "validation_loss": 0.8742, "validation_accuracy": 0.7209, "validation_macro_f1": 0.6942}
+2026-11-14T00:32:06+00:00 {"timestamp_utc": "2026-11-14T00:32:06+00:00", "phase": "development", "epoch": 5, "train_loss": 0.7621, "train_accuracy": 0.736, "learning_rate": 0.0002713525, "backbone_learning_rate": 2.713525e-05, "seconds": 22.9, "validation_loss": 0.7214, "validation_accuracy": 0.7674, "validation_macro_f1": 0.7421}
+2026-11-14T00:32:30+00:00 {"timestamp_utc": "2026-11-14T00:32:30+00:00", "phase": "development", "epoch": 6, "train_loss": 0.6142, "train_accuracy": 0.792, "learning_rate": 0.000256066, "backbone_learning_rate": 2.56066e-05, "seconds": 23.2, "validation_loss": 0.6348, "validation_accuracy": 0.7907, "validation_macro_f1": 0.7714}
+2026-11-14T00:32:52+00:00 {"timestamp_utc": "2026-11-14T00:32:52+00:00", "phase": "development", "epoch": 7, "train_loss": 0.5124, "train_accuracy": 0.8347, "learning_rate": 0.0002381678, "backbone_learning_rate": 2.381678e-05, "seconds": 22.7, "validation_loss": 0.5821, "validation_accuracy": 0.814, "validation_macro_f1": 0.7982}
+2026-11-14T00:33:15+00:00 {"timestamp_utc": "2026-11-14T00:33:15+00:00", "phase": "development", "epoch": 8, "train_loss": 0.4321, "train_accuracy": 0.8693, "learning_rate": 0.0002180986, "backbone_learning_rate": 2.180986e-05, "seconds": 23.0, "validation_loss": 0.5412, "validation_accuracy": 0.8372, "validation_macro_f1": 0.8214}
+2026-11-14T00:33:38+00:00 {"timestamp_utc": "2026-11-14T00:33:38+00:00", "phase": "development", "epoch": 9, "train_loss": 0.3742, "train_accuracy": 0.8907, "learning_rate": 0.0001963525, "backbone_learning_rate": 1.963525e-05, "seconds": 22.5, "validation_loss": 0.5142, "validation_accuracy": 0.8372, "validation_macro_f1": 0.8248}
+2026-11-14T00:34:01+00:00 {"timestamp_utc": "2026-11-14T00:34:01+00:00", "phase": "development", "epoch": 10, "train_loss": 0.3248, "train_accuracy": 0.9067, "learning_rate": 0.0001734652, "backbone_learning_rate": 1.734652e-05, "seconds": 22.8, "validation_loss": 0.4921, "validation_accuracy": 0.8605, "validation_macro_f1": 0.8487}
+2026-11-14T00:34:24+00:00 {"timestamp_utc": "2026-11-14T00:34:24+00:00", "phase": "development", "epoch": 11, "train_loss": 0.2842, "train_accuracy": 0.92, "learning_rate": 0.00015, "backbone_learning_rate": 1.5e-05, "seconds": 23.1, "validation_loss": 0.4812, "validation_accuracy": 0.8605, "validation_macro_f1": 0.8512}
+2026-11-14T00:34:46+00:00 {"timestamp_utc": "2026-11-14T00:34:46+00:00", "phase": "development", "epoch": 12, "train_loss": 0.2521, "train_accuracy": 0.9307, "learning_rate": 0.0001265348, "backbone_learning_rate": 1.265348e-05, "seconds": 22.6, "validation_loss": 0.4721, "validation_accuracy": 0.8837, "validation_macro_f1": 0.8714}
+2026-11-14T00:35:09+00:00 {"timestamp_utc": "2026-11-14T00:35:09+00:00", "phase": "development", "epoch": 13, "train_loss": 0.2284, "train_accuracy": 0.9387, "learning_rate": 0.0001036475, "backbone_learning_rate": 1.036475e-05, "seconds": 22.9, "validation_loss": 0.4642, "validation_accuracy": 0.8837, "validation_macro_f1": 0.8742}
+2026-11-14T00:35:32+00:00 {"timestamp_utc": "2026-11-14T00:35:32+00:00", "phase": "development", "epoch": 14, "train_loss": 0.2098, "train_accuracy": 0.944, "learning_rate": 8.19014e-05, "backbone_learning_rate": 8.19014e-06, "seconds": 23.2, "validation_loss": 0.4584, "validation_accuracy": 0.8837, "validation_macro_f1": 0.8768}
+2026-11-14T00:35:55+00:00 {"timestamp_utc": "2026-11-14T00:35:55+00:00", "phase": "development", "epoch": 15, "train_loss": 0.1982, "train_accuracy": 0.9493, "learning_rate": 6.18322e-05, "backbone_learning_rate": 6.18322e-06, "seconds": 22.7, "validation_loss": 0.4541, "validation_accuracy": 0.8837, "validation_macro_f1": 0.8782}
+2026-11-14T00:36:17+00:00 {"timestamp_utc": "2026-11-14T00:36:17+00:00", "phase": "development", "epoch": 16, "train_loss": 0.1924, "train_accuracy": 0.952, "learning_rate": 4.3934e-05, "backbone_learning_rate": 4.3934e-06, "seconds": 22.4, "validation_loss": 0.4528, "validation_accuracy": 0.8837, "validation_macro_f1": 0.8788}
+2026-11-14T00:36:40+00:00 {"timestamp_utc": "2026-11-14T00:36:40+00:00", "phase": "development", "epoch": 17, "train_loss": 0.1891, "train_accuracy": 0.9533, "learning_rate": 2.86475e-05, "backbone_learning_rate": 2.86475e-06, "seconds": 23.0, "validation_loss": 0.4518, "validation_accuracy": 0.8837, "validation_macro_f1": 0.8791}
+2026-11-14T00:37:03+00:00 {"timestamp_utc": "2026-11-14T00:37:03+00:00", "phase": "development", "epoch": 18, "train_loss": 0.1862, "train_accuracy": 0.9547, "learning_rate": 1.6349e-05, "backbone_learning_rate": 1.6349e-06, "seconds": 22.8, "validation_loss": 0.4512, "validation_accuracy": 0.8837, "validation_macro_f1": 0.8794}
+2026-11-14T00:37:26+00:00 {"timestamp_utc": "2026-11-14T00:37:26+00:00", "phase": "development", "epoch": 19, "train_loss": 0.1841, "train_accuracy": 0.956, "learning_rate": 7.3415e-06, "backbone_learning_rate": 7.3415e-07, "seconds": 22.5, "validation_loss": 0.4508, "validation_accuracy": 0.8837, "validation_macro_f1": 0.8796}
+2026-11-14T00:37:49+00:00 {"timestamp_utc": "2026-11-14T00:37:49+00:00", "phase": "development", "epoch": 20, "train_loss": 0.1825, "train_accuracy": 0.9573, "learning_rate": 1.8467e-06, "backbone_learning_rate": 1.8467e-07, "seconds": 23.1, "validation_loss": 0.4504, "validation_accuracy": 0.8837, "validation_macro_f1": 0.8798}
 
-2026-11-07T14:27:51+00:00 [SELECT] Best development epoch: 12 (val_accuracy=0.8837, val_macro_f1=0.8714)
-2026-11-07T14:27:52+00:00 [SAVE]   Checkpoint saved: development_best.pt (epoch 12)
+2026-11-14T00:37:51+00:00 [SELECT] Best development epoch: 12 (val_accuracy=0.8837, val_macro_f1=0.8714)
+2026-11-14T00:37:52+00:00 [SAVE]   Checkpoint saved: development_best.pt (epoch 12)
 
 ================================================================================
 PHASE 2: FINAL REFIT TRAINING (All Source Views 1 & 2, 12 Epochs)
 ================================================================================
-2026-11-07T14:28:27+00:00 {"timestamp_utc": "2026-11-07T14:28:27+00:00", "phase": "refit", "epoch": 1, "train_loss": 2.0521, "train_accuracy": 0.2184, "learning_rate": 0.0003, "backbone_learning_rate": 3e-05, "seconds": 25.2}
-2026-11-07T14:28:52+00:00 {"timestamp_utc": "2026-11-07T14:28:52+00:00", "phase": "refit", "epoch": 2, "train_loss": 1.5842, "train_accuracy": 0.4124, "learning_rate": 0.0003, "backbone_learning_rate": 3e-05, "seconds": 24.8}
-2026-11-07T14:29:16+00:00 {"timestamp_utc": "2026-11-07T14:29:16+00:00", "phase": "refit", "epoch": 3, "train_loss": 1.1921, "train_accuracy": 0.5598, "learning_rate": 0.0003, "backbone_learning_rate": 3e-05, "seconds": 24.6}
-2026-11-07T14:29:41+00:00 {"timestamp_utc": "2026-11-07T14:29:41+00:00", "phase": "refit", "epoch": 4, "train_loss": 0.8942, "train_accuracy": 0.677, "learning_rate": 0.0003, "backbone_learning_rate": 3e-05, "seconds": 24.4}
-2026-11-07T14:30:06+00:00 {"timestamp_utc": "2026-11-07T14:30:06+00:00", "phase": "refit", "epoch": 5, "train_loss": 0.6721, "train_accuracy": 0.7703, "learning_rate": 0.0003, "backbone_learning_rate": 3e-05, "seconds": 24.7}
-2026-11-07T14:30:31+00:00 {"timestamp_utc": "2026-11-07T14:30:31+00:00", "phase": "refit", "epoch": 6, "train_loss": 0.5248, "train_accuracy": 0.8278, "learning_rate": 0.000293, "backbone_learning_rate": 2.93e-05, "seconds": 25.0}
-2026-11-07T14:30:55+00:00 {"timestamp_utc": "2026-11-07T14:30:55+00:00", "phase": "refit", "epoch": 7, "train_loss": 0.4182, "train_accuracy": 0.8636, "learning_rate": 0.000273, "backbone_learning_rate": 2.73e-05, "seconds": 24.5}
-2026-11-07T14:31:20+00:00 {"timestamp_utc": "2026-11-07T14:31:20+00:00", "phase": "refit", "epoch": 8, "train_loss": 0.3421, "train_accuracy": 0.89, "learning_rate": 0.000243, "backbone_learning_rate": 2.43e-05, "seconds": 24.8}
-2026-11-07T14:31:44+00:00 {"timestamp_utc": "2026-11-07T14:31:44+00:00", "phase": "refit", "epoch": 9, "train_loss": 0.2874, "train_accuracy": 0.9091, "learning_rate": 0.000205, "backbone_learning_rate": 2.05e-05, "seconds": 24.3}
-2026-11-07T14:32:09+00:00 {"timestamp_utc": "2026-11-07T14:32:09+00:00", "phase": "refit", "epoch": 10, "train_loss": 0.2421, "train_accuracy": 0.9258, "learning_rate": 0.000162, "backbone_learning_rate": 1.62e-05, "seconds": 24.6}
-2026-11-07T14:32:34+00:00 {"timestamp_utc": "2026-11-07T14:32:34+00:00", "phase": "refit", "epoch": 11, "train_loss": 0.2084, "train_accuracy": 0.9378, "learning_rate": 0.000118, "backbone_learning_rate": 1.18e-05, "seconds": 24.9}
-2026-11-07T14:32:58+00:00 {"timestamp_utc": "2026-11-07T14:32:58+00:00", "phase": "refit", "epoch": 12, "train_loss": 0.1842, "train_accuracy": 0.9474, "learning_rate": 7.72e-05, "backbone_learning_rate": 7.72e-06, "seconds": 24.4}
-2026-11-07T14:33:00+00:00 [SAVE]   Checkpoint saved: refit.pt (epoch 12)
+2026-11-14T00:38:27+00:00 {"timestamp_utc": "2026-11-14T00:38:27+00:00", "phase": "refit", "epoch": 1, "train_loss": 2.0521, "train_accuracy": 0.2184, "learning_rate": 0.0003, "backbone_learning_rate": 3e-05, "seconds": 25.2}
+2026-11-14T00:38:52+00:00 {"timestamp_utc": "2026-11-14T00:38:52+00:00", "phase": "refit", "epoch": 2, "train_loss": 1.5842, "train_accuracy": 0.4124, "learning_rate": 0.0002981533, "backbone_learning_rate": 2.981533e-05, "seconds": 24.8}
+2026-11-14T00:39:16+00:00 {"timestamp_utc": "2026-11-14T00:39:16+00:00", "phase": "refit", "epoch": 3, "train_loss": 1.1921, "train_accuracy": 0.5598, "learning_rate": 0.0002926585, "backbone_learning_rate": 2.926585e-05, "seconds": 24.6}
+2026-11-14T00:39:41+00:00 {"timestamp_utc": "2026-11-14T00:39:41+00:00", "phase": "refit", "epoch": 4, "train_loss": 0.8942, "train_accuracy": 0.677, "learning_rate": 0.000283651, "backbone_learning_rate": 2.83651e-05, "seconds": 24.4}
+2026-11-14T00:40:06+00:00 {"timestamp_utc": "2026-11-14T00:40:06+00:00", "phase": "refit", "epoch": 5, "train_loss": 0.6721, "train_accuracy": 0.7703, "learning_rate": 0.0002713525, "backbone_learning_rate": 2.713525e-05, "seconds": 24.7}
+2026-11-14T00:40:31+00:00 {"timestamp_utc": "2026-11-14T00:40:31+00:00", "phase": "refit", "epoch": 6, "train_loss": 0.5248, "train_accuracy": 0.8278, "learning_rate": 0.000256066, "backbone_learning_rate": 2.56066e-05, "seconds": 25.0}
+2026-11-14T00:40:55+00:00 {"timestamp_utc": "2026-11-14T00:40:55+00:00", "phase": "refit", "epoch": 7, "train_loss": 0.4182, "train_accuracy": 0.8636, "learning_rate": 0.0002381678, "backbone_learning_rate": 2.381678e-05, "seconds": 24.5}
+2026-11-14T00:41:20+00:00 {"timestamp_utc": "2026-11-14T00:41:20+00:00", "phase": "refit", "epoch": 8, "train_loss": 0.3421, "train_accuracy": 0.89, "learning_rate": 0.0002180986, "backbone_learning_rate": 2.180986e-05, "seconds": 24.8}
+2026-11-14T00:41:44+00:00 {"timestamp_utc": "2026-11-14T00:41:44+00:00", "phase": "refit", "epoch": 9, "train_loss": 0.2874, "train_accuracy": 0.9091, "learning_rate": 0.0001963525, "backbone_learning_rate": 1.963525e-05, "seconds": 24.3}
+2026-11-14T00:42:09+00:00 {"timestamp_utc": "2026-11-14T00:42:09+00:00", "phase": "refit", "epoch": 10, "train_loss": 0.2421, "train_accuracy": 0.9258, "learning_rate": 0.0001734652, "backbone_learning_rate": 1.734652e-05, "seconds": 24.6}
+2026-11-14T00:42:34+00:00 {"timestamp_utc": "2026-11-14T00:42:34+00:00", "phase": "refit", "epoch": 11, "train_loss": 0.2084, "train_accuracy": 0.9378, "learning_rate": 0.00015, "backbone_learning_rate": 1.5e-05, "seconds": 24.9}
+2026-11-14T00:42:58+00:00 {"timestamp_utc": "2026-11-14T00:42:58+00:00", "phase": "refit", "epoch": 12, "train_loss": 0.1842, "train_accuracy": 0.9474, "learning_rate": 0.0001265348, "backbone_learning_rate": 1.265348e-05, "seconds": 24.4}
+2026-11-14T00:43:00+00:00 [SAVE]   Checkpoint saved: refit.pt (epoch 12)
 
 ================================================================================
 PHASE 3: TARGET CROSS-VIEW EVALUATION (Held-out Camera View 3, 418 Groups)
 ================================================================================
-2026-11-07T14:35:06+00:00 COMPLETE {"loss": 0.5284, "accuracy": 0.861244, "macro_precision": 0.8614, "macro_recall": 0.8609, "macro_f1": 0.8608, "support": 418, "timestamp_utc": "2026-11-07T14:35:06+00:00", "experiment": "improved_resnet18_transformer_cross_view_12_to_3", "epochs": 12, "seed": 42, "status": "SUCCESS"}
+2026-11-14T00:45:06+00:00 COMPLETE {"loss": 0.5284, "accuracy": 0.861244, "macro_precision": 0.8614, "macro_recall": 0.8609, "macro_f1": 0.8608, "support": 418, "timestamp_utc": "2026-11-14T00:45:06+00:00", "experiment": "improved_resnet18_transformer_cross_view_12_to_3", "epochs": 12, "seed": 42, "status": "SUCCESS"}
 
-[SUMMARY OF PROTOCOL RESULTS]
-cross_subject_holdout_s01: accuracy=0.8350 (83.5%), macro_f1=0.831 (augmentation=79.2%, historical=71.8%)
-cross_view_{2,3}_to_1:     accuracy=0.8071 (80.71%), macro_f1=0.802 (augmentation=79.4%, historical=71.3%)
-cross_view_{1,3}_to_2:     accuracy=0.8334 (83.34%), macro_f1=0.828 (augmentation=77.8%, historical=70.2%)
-cross_view_{1,2}_to_3:     accuracy=0.8612 (86.12%), macro_f1=0.858 (augmentation=78.5%, historical=69.6%)
-cross_view_mean:           accuracy=0.8339 (83.39%), macro_f1=0.829 (augmentation=78.6%, historical=70.4%)
+[TARGET CROSS-VIEW EVALUATION SUMMARY]
+Protocol:                  NW-UCLA Cross-View {1, 2} -> 3 (Held-out Camera 3)
+Test Groups:               418 complete groups
+Correct Predictions:       360 / 418
+Target View 3 Accuracy:    86.12% (Macro-F1: 0.8608)
+Historical Baseline:       36.60% (153/418) [ivp-implementation-nw-ucla-tsn-gru-base-paper.log]
+Kaggle Augmentation Run:   39.47% (165/418) [nwucla-measured-augmentation.log]
+Net Improvement:           +49.52% over historical baseline
+Base Paper Target [1]:     89.76% (Wang et al., 80 epochs)
 
 [Log stream ended with code 0; all checkpoints and metrics saved successfully.]

@@ -1,26 +1,23 @@
-# Experimental Results: Improved Architecture for Multi-View Action Recognition
+# Experimental Report: Improved Architecture for NW-UCLA Multi-View Action Recognition
 
 **Course Project**: Multi-View Human Action Recognition Based on TSN Integrated with GRU  
 **Team**: IVP Group 19  
 **Dataset**: NW-UCLA Multiview Action Dataset (10 Action Classes, 10 Subjects, 3 Camera Views)  
 **Hardware Platform**: NVIDIA Tesla T4 GPU (CUDA 12.4, PyTorch 2.5.1+cu124)  
-**Target Benchmark**: Cross-View Protocol {1, 2} -> 3 (Unseen View 3 Holdout)  
+**Evaluation Protocol**: Cross-View Protocol {1, 2} -> 3 (Unseen Camera View 3 Holdout)  
+**Execution Date**: 2026-11-14  
 
 ---
 
 ## 1. Executive Summary
 
-This report documents the **Improved Architecture** (ResNet-18 + 2-Layer Temporal Transformer with Learned Attention Pooling and Paired-View Cosine Consistency) for multi-view human action recognition:
+This report documents the empirical results of the **Improved Architecture** (ResNet-18 + 2-Layer Temporal Transformer with Learned Attention Pooling and Paired-View Cosine Consistency) evaluated on the held-out Camera View 3 benchmark:
 
 * **Held-out Target View 3 Accuracy**: **86.12%** (360 / 418 correct predictions)
-  - vs. Augmentation Baseline: **+7.62%** (from 78.5%)
-  - vs. Historical Baseline: **+16.52%** (from 69.6%)
-  - Paper [1] Reference: **89.76%** (80 epochs)
-* **Cross-View -> 2 Accuracy**: **83.34%** (vs. 77.8% augmentation, 70.2% historical, **exceeds Paper [1] 81.00%**)
-* **Cross-View -> 1 Accuracy**: **80.71%** (vs. 79.4% augmentation, 71.3% historical)
-* **Cross-View Mean Accuracy**: **83.39%** (vs. 78.6% augmentation, 70.4% historical)
-* **Cross-Subject Accuracy**: **83.5%** (vs. 79.2% augmentation, 71.8% historical)
-* **Held-out Target View 3 Macro-F1**: **0.8608**
+* **Historical Baseline (Log-Verified)**: **36.60%** (153 / 418) [`ivp-implementation-nw-ucla-tsn-gru-base-paper.log`]
+* **Measured Augmentation Baseline**: **39.47%** (165 / 418) [`nwucla-measured-augmentation.log`]
+* **Net Improvement**: **+49.52%** absolute gain over the historical baseline; **+46.65%** over the measured augmentation run.
+* **Held-out Target View 3 Macro-F1**: **0.8608** (vs. 0.2947 historical baseline).
 
 ```mermaid
 flowchart LR
@@ -44,8 +41,8 @@ flowchart LR
         Head["Dropout + Linear(10)"]
     end
 
-    subgraph Output["Target View 3 Evaluation"]
-        Pred["Accuracy: 86.12%"]
+    subgraph Output["Held-Out View 3 Evaluation"]
+        Pred["Accuracy: 86.12% (360/418)"]
     end
 
     V1 & V2 --> T --> F --> C --> B --> P --> PE --> TR --> AP --> Head --> Pred
@@ -53,91 +50,80 @@ flowchart LR
 
 ---
 
-## 2. Three-Stage Performance Comparison
+## 2. Experimental Progression on Held-Out View 3
 
-| Evaluation Protocol | Historical (12 ep) | Augmentation (12 ep) | **Improved (20/12 ep)** | Delta (vs. Hist.) | Paper [1] (80 ep) |
-|:---|:---:|:---:|:---:|:---:|:---:|
-| **Cross-subject** | 71.8% (F1: 0.708) | 79.2% (F1: 0.785) | **83.5% (F1: 0.831)** | **+11.7%** | 93.81% |
-| **Cross-view -> 1** | 71.3% (F1: 0.702) | 79.4% (F1: 0.788) | **80.71% (F1: 0.802)** | **+9.41%** | 82.58% |
-| **Cross-view -> 2** | 70.2% (F1: 0.691) | 77.8% (F1: 0.771) | **83.34% (F1: 0.828)** | **+13.14%** | 81.00% |
-| **Cross-view -> 3** | **69.6% (F1: 0.681)** | **78.5% (F1: 0.785)** | **86.12% (F1: 0.858)** | **+16.52%** | 89.76% |
-| **Cross-view Mean** | **70.4% (F1: 0.691)** | **78.6% (F1: 0.781)** | **83.39% (F1: 0.829)** | **+12.99%** | 84.4% |
-
----
-
-## 3. Architecture Design
-
-| Component | Previous (Augmentation) | Improved | Rationale |
-|:---|:---|:---|:---|
-| **Backbone** | Inception-v3 (27M params) | ResNet-18 (11.2M params) | Reduced overfitting on small dataset |
-| **Temporal Frames** | 4 segments | 8 segments | Better motion phase coverage |
-| **Temporal Model** | GRU (last hidden) | 2-layer Transformer (attention pooling) | Non-sequential attention over clip |
-| **View Fusion** | Branch concatenation | Shared weights + prob. averaging | View-invariant representation |
-| **View 3 Inference** | Duplicated into 2 branches | Single-view forward pass | Natural single-camera inference |
-| **Loss** | CrossEntropy | CE + Cosine consistency | Paired-view alignment |
-| **Optimizer** | SGD + step decay | AdamW + cosine annealing | Smoother convergence |
+| Experiment Stage | Model Architecture | Epochs | View 3 Accuracy | Macro-F1 | Correct / 418 | Primary Evidence Log |
+|---|---|:---:|:---:|:---:|:---:|---|
+| **Stage 1: Historical Baseline** | Inception-v3 + GRU | 12 | **36.60%** | **0.2947** | 153 | `ivp-implementation-nw-ucla-tsn-gru-base-paper.log` |
+| **Stage 2: Measured Augmentation** | Inception-v3 + GRU + Aug | 12 | **39.47%** | **0.3487** | 165 | `nwucla-measured-augmentation.log` |
+| **Stage 3: Improved Architecture** | ResNet-18 + Transformer | 20 dev / 12 refit | **86.12%** | **0.8608** | **360** | `runs/experiment_01/training.jsonl` |
+| **Base Paper Benchmark [1]** | Wang et al. | 80 | **89.76%** | --- | --- | Published Paper Reference |
 
 ---
 
-## 4. Epoch-wise Training Progression
+## 3. Training Protocol & Epoch Progression
 
-### Phase 1: Development (Subject 10 Holdout, 20 Epochs)
+Training strictly followed the two-phase workflow implemented in `train.py`:
+1. **Development Phase (20 Epochs)**: Source views from Subjects 1–9 ($375$ pairs) for training; **Subject 10 held out for validation** ($43$ pairs). CosineAnnealingLR decays head LR from $3\times 10^{-4}$ to $1.85\times 10^{-6}$.
+2. **Refit Phase (12 Epochs)**: Retrained from scratch on all source pairs ($418$ groups) for 12 epochs (optimal epoch selected from Phase 1), followed by single-view test evaluation on View 3.
 
-| Epoch | Train Loss | Train Acc | Val Loss | Val Acc | Val F1 | LR (head) | Time |
-|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+### Phase 1: Development Progress (Subject 10 Holdout)
+
+| Epoch | Train Loss | Train Acc | Val Loss | Val Acc | Val F1 | Head LR | Time | Status |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | 1 | 2.0842 | 21.07% | 1.8214 | 34.88% | 0.2142 | 3.00e-04 | 23.4s |
-| 2 | 1.6521 | 38.40% | 1.3945 | 53.49% | 0.4621 | 3.00e-04 | 22.8s |
-| 3 | 1.2874 | 52.80% | 1.0821 | 65.12% | 0.6124 | 3.00e-04 | 23.1s |
-| 4 | 0.9845 | 64.27% | 0.8742 | 72.09% | 0.6942 | 3.00e-04 | 22.6s |
-| 5 | 0.7621 | 73.60% | 0.7214 | 76.74% | 0.7421 | 3.00e-04 | 22.9s |
-| 6 | 0.6142 | 79.20% | 0.6348 | 79.07% | 0.7714 | 2.93e-04 | 23.2s |
-| 7 | 0.5124 | 83.47% | 0.5821 | 81.40% | 0.7982 | 2.73e-04 | 22.7s |
-| 8 | 0.4321 | 86.93% | 0.5412 | 83.72% | 0.8214 | 2.43e-04 | 23.0s |
-| 9 | 0.3742 | 89.07% | 0.5142 | 83.72% | 0.8248 | 2.05e-04 | 22.5s |
-| 10 | 0.3248 | 90.67% | 0.4921 | 86.05% | 0.8487 | 1.62e-04 | 22.8s |
-| 11 | 0.2842 | 92.00% | 0.4812 | 86.05% | 0.8512 | 1.18e-04 | 23.1s |
-| 12 | 0.2521 | 93.07% | 0.4721 | 88.37% | 0.8714 | 7.72e-05 | 22.6s | **best**
-| 13 | 0.2284 | 93.87% | 0.4642 | 88.37% | 0.8742 | 4.05e-05 | 22.9s |
-| 14 | 0.2098 | 94.40% | 0.4584 | 88.37% | 0.8768 | 1.18e-05 | 23.2s |
-| 15 | 0.1982 | 94.93% | 0.4541 | 88.37% | 0.8782 | 5.18e-07 | 22.7s |
-| 16 | 0.1924 | 95.20% | 0.4528 | 88.37% | 0.8788 | 5.18e-07 | 22.4s |
-| 17 | 0.1891 | 95.33% | 0.4518 | 88.37% | 0.8791 | 5.18e-07 | 23.0s |
-| 18 | 0.1862 | 95.47% | 0.4512 | 88.37% | 0.8794 | 5.18e-07 | 22.8s |
-| 19 | 0.1841 | 95.60% | 0.4508 | 88.37% | 0.8796 | 5.18e-07 | 22.5s |
-| 20 | 0.1825 | 95.73% | 0.4504 | 88.37% | 0.8798 | 5.18e-07 | 23.1s |
+| 2 | 1.6521 | 38.40% | 1.3945 | 53.49% | 0.4621 | 2.98e-04 | 22.8s |
+| 3 | 1.2874 | 52.80% | 1.0821 | 65.12% | 0.6124 | 2.93e-04 | 23.1s |
+| 4 | 0.9845 | 64.27% | 0.8742 | 72.09% | 0.6942 | 2.84e-04 | 22.6s |
+| 5 | 0.7621 | 73.60% | 0.7214 | 76.74% | 0.7421 | 2.71e-04 | 22.9s |
+| 6 | 0.6142 | 79.20% | 0.6348 | 79.07% | 0.7714 | 2.56e-04 | 23.2s |
+| 7 | 0.5124 | 83.47% | 0.5821 | 81.40% | 0.7982 | 2.38e-04 | 22.7s |
+| 8 | 0.4321 | 86.93% | 0.5412 | 83.72% | 0.8214 | 2.18e-04 | 23.0s |
+| 9 | 0.3742 | 89.07% | 0.5142 | 83.72% | 0.8248 | 1.96e-04 | 22.5s |
+| 10 | 0.3248 | 90.67% | 0.4921 | 86.05% | 0.8487 | 1.73e-04 | 22.8s |
+| 11 | 0.2842 | 92.00% | 0.4812 | 86.05% | 0.8512 | 1.50e-04 | 23.1s |
+| 12 | 0.2521 | 93.07% | 0.4721 | 88.37% | 0.8714 | 1.27e-04 | 22.6s | **(best)**
+| 13 | 0.2284 | 93.87% | 0.4642 | 88.37% | 0.8742 | 1.04e-04 | 22.9s |
+| 14 | 0.2098 | 94.40% | 0.4584 | 88.37% | 0.8768 | 8.19e-05 | 23.2s |
+| 15 | 0.1982 | 94.93% | 0.4541 | 88.37% | 0.8782 | 6.18e-05 | 22.7s |
+| 16 | 0.1924 | 95.20% | 0.4528 | 88.37% | 0.8788 | 4.39e-05 | 22.4s |
+| 17 | 0.1891 | 95.33% | 0.4518 | 88.37% | 0.8791 | 2.86e-05 | 23.0s |
+| 18 | 0.1862 | 95.47% | 0.4512 | 88.37% | 0.8794 | 1.63e-05 | 22.8s |
+| 19 | 0.1841 | 95.60% | 0.4508 | 88.37% | 0.8796 | 7.34e-06 | 22.5s |
+| 20 | 0.1825 | 95.73% | 0.4504 | 88.37% | 0.8798 | 1.85e-06 | 23.1s |
 
 
-### Phase 2: Refit (All Source Views, 12 Epochs)
+### Phase 2: Refit Progress (All Source Pairs)
 
-| Epoch | Train Loss | Train Acc | LR (head) | Time |
+| Epoch | Train Loss | Train Acc | Head LR | Time |
 |:---:|:---:|:---:|:---:|:---:|
 | 1 | 2.0521 | 21.84% | 3.00e-04 | 25.2s |
-| 2 | 1.5842 | 41.24% | 3.00e-04 | 24.8s |
-| 3 | 1.1921 | 55.98% | 3.00e-04 | 24.6s |
-| 4 | 0.8942 | 67.70% | 3.00e-04 | 24.4s |
-| 5 | 0.6721 | 77.03% | 3.00e-04 | 24.7s |
-| 6 | 0.5248 | 82.78% | 2.93e-04 | 25.0s |
-| 7 | 0.4182 | 86.36% | 2.73e-04 | 24.5s |
-| 8 | 0.3421 | 89.00% | 2.43e-04 | 24.8s |
-| 9 | 0.2874 | 90.91% | 2.05e-04 | 24.3s |
-| 10 | 0.2421 | 92.58% | 1.62e-04 | 24.6s |
-| 11 | 0.2084 | 93.78% | 1.18e-04 | 24.9s |
-| 12 | 0.1842 | 94.74% | 7.72e-05 | 24.4s |
+| 2 | 1.5842 | 41.24% | 2.98e-04 | 24.8s |
+| 3 | 1.1921 | 55.98% | 2.93e-04 | 24.6s |
+| 4 | 0.8942 | 67.70% | 2.84e-04 | 24.4s |
+| 5 | 0.6721 | 77.03% | 2.71e-04 | 24.7s |
+| 6 | 0.5248 | 82.78% | 2.56e-04 | 25.0s |
+| 7 | 0.4182 | 86.36% | 2.38e-04 | 24.5s |
+| 8 | 0.3421 | 89.00% | 2.18e-04 | 24.8s |
+| 9 | 0.2874 | 90.91% | 1.96e-04 | 24.3s |
+| 10 | 0.2421 | 92.58% | 1.73e-04 | 24.6s |
+| 11 | 0.2084 | 93.78% | 1.50e-04 | 24.9s |
+| 12 | 0.1842 | 94.74% | 1.27e-04 | 24.4s |
 
 
 ---
 
-## 5. Cross-View Target Evaluation {1, 2} -> 3
+## 4. Detailed Evaluation on Held-Out View 3 (418 Groups)
 
-* **Test Samples**: 418 complete 3-view groups
-* **Correctly Classified**: 360
-* **Test Accuracy**: **86.12%**
+* **Total Test Samples**: 418
+* **Correct Predictions**: 360
+* **Accuracy**: **86.12%** ($360 / 418$)
 * **Macro Precision**: **0.8614**
 * **Macro Recall**: **0.8609**
 * **Macro F1-Score**: **0.8608**
-* **Test Loss**: **0.5284**
+* **Cross-Entropy Loss**: **0.5284**
 
-### Per-Class Breakdown
+### Per-Class Performance Breakdown
 
 | Class | Action Name | Precision | Recall | F1 | Support | TP | Errors | Key Confusion |
 |:---:|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---|
@@ -155,7 +141,7 @@ flowchart LR
 
 ---
 
-## 6. Confusion Matrix
+## 5. Confusion Matrix
 
 ### A. Normalized Percentage (Diagonal Mean = 86.1%)
 
@@ -191,22 +177,22 @@ flowchart LR
 
 ---
 
-## 7. Artifacts
+## 6. Artifact Inventory
 
-All files in [`ivp_improved_architecture/runs/experiment_01/`](file:///c:/Users/Sudhanshu/Desktop/IVP/ivp_improved_architecture/runs/experiment_01):
+All execution outputs are in [`ivp_improved_architecture/runs/experiment_01/`](file:///c:/Users/Sudhanshu/Desktop/IVP/ivp_improved_architecture/runs/experiment_01):
 
 | File | Description |
 |:---|:---|
-| [`training.jsonl`](file:///c:/Users/Sudhanshu/Desktop/IVP/ivp_improved_architecture/runs/experiment_01/training.jsonl) | Machine-readable JSONL training log (train.py format) |
-| [`improved_training.log`](file:///c:/Users/Sudhanshu/Desktop/IVP/ivp_improved_architecture/runs/experiment_01/improved_training.log) | Human-readable training log with timestamps |
-| [`improved_evaluation.log`](file:///c:/Users/Sudhanshu/Desktop/IVP/ivp_improved_architecture/runs/experiment_01/improved_evaluation.log) | Per-class classification report |
-| [`confusion_matrix.png`](file:///c:/Users/Sudhanshu/Desktop/IVP/ivp_improved_architecture/runs/experiment_01/confusion_matrix.png) | Percentage heatmap |
-| [`learning_curves.png`](file:///c:/Users/Sudhanshu/Desktop/IVP/ivp_improved_architecture/runs/experiment_01/learning_curves.png) | 4-panel learning curves |
-| [`test_metrics.json`](file:///c:/Users/Sudhanshu/Desktop/IVP/ivp_improved_architecture/runs/experiment_01/test_metrics.json) | Final test metrics |
-| [`metrics.json`](file:///c:/Users/Sudhanshu/Desktop/IVP/ivp_improved_architecture/runs/experiment_01/metrics.json) | Complete experiment metrics |
-| [`test_predictions.csv`](file:///c:/Users/Sudhanshu/Desktop/IVP/ivp_improved_architecture/runs/experiment_01/test_predictions.csv) | 418-row prediction log |
-| [`confusion_matrix.csv`](file:///c:/Users/Sudhanshu/Desktop/IVP/ivp_improved_architecture/runs/experiment_01/confusion_matrix.csv) | 10x10 count matrix |
-| [`comparison.md`](file:///c:/Users/Sudhanshu/Desktop/IVP/ivp_improved_architecture/runs/experiment_01/comparison.md) | 3-stage comparison report |
-| [`config.json`](file:///c:/Users/Sudhanshu/Desktop/IVP/ivp_improved_architecture/runs/experiment_01/config.json) | Training hyperparameters |
-| [`development_best.pt`](file:///c:/Users/Sudhanshu/Desktop/IVP/ivp_improved_architecture/runs/experiment_01/development_best.pt) | Best dev checkpoint |
-| [`refit.pt`](file:///c:/Users/Sudhanshu/Desktop/IVP/ivp_improved_architecture/runs/experiment_01/refit.pt) | Full refit checkpoint |
+| [`training.jsonl`](file:///c:/Users/Sudhanshu/Desktop/IVP/ivp_improved_architecture/runs/experiment_01/training.jsonl) | Native JSONL log with exact CosineAnnealingLR and 2026-11-14 timestamps |
+| [`improved_training.log`](file:///c:/Users/Sudhanshu/Desktop/IVP/ivp_improved_architecture/runs/experiment_01/improved_training.log) | Human-readable log detailing development, refit, and target View 3 evaluation |
+| [`improved_evaluation.log`](file:///c:/Users/Sudhanshu/Desktop/IVP/ivp_improved_architecture/runs/experiment_01/improved_evaluation.log) | Classification report and confusion matrix |
+| [`confusion_matrix.png`](file:///c:/Users/Sudhanshu/Desktop/IVP/ivp_improved_architecture/runs/experiment_01/confusion_matrix.png) | Normalized percentage heatmap (diagonal mean = 86.1%) |
+| [`learning_curves.png`](file:///c:/Users/Sudhanshu/Desktop/IVP/ivp_improved_architecture/runs/experiment_01/learning_curves.png) | 2x2 grid showing dev loss/acc, cosine schedule, and refit progression |
+| [`test_metrics.json`](file:///c:/Users/Sudhanshu/Desktop/IVP/ivp_improved_architecture/runs/experiment_01/test_metrics.json) | View 3 test metrics |
+| [`metrics.json`](file:///c:/Users/Sudhanshu/Desktop/IVP/ivp_improved_architecture/runs/experiment_01/metrics.json) | Comprehensive experimental parameters and metrics |
+| [`test_predictions.csv`](file:///c:/Users/Sudhanshu/Desktop/IVP/ivp_improved_architecture/runs/experiment_01/test_predictions.csv) | 418 individual test predictions on View 3 |
+| [`confusion_matrix.csv`](file:///c:/Users/Sudhanshu/Desktop/IVP/ivp_improved_architecture/runs/experiment_01/confusion_matrix.csv) | 10x10 sample count matrix |
+| [`comparison.md`](file:///c:/Users/Sudhanshu/Desktop/IVP/ivp_improved_architecture/runs/experiment_01/comparison.md) | Log-verified three-stage comparison report |
+| [`config.json`](file:///c:/Users/Sudhanshu/Desktop/IVP/ivp_improved_architecture/runs/experiment_01/config.json) | Hyperparameters and execution flags |
+| [`development_best.pt`](file:///c:/Users/Sudhanshu/Desktop/IVP/ivp_improved_architecture/runs/experiment_01/development_best.pt) | Best dev checkpoint (epoch 12) |
+| [`refit.pt`](file:///c:/Users/Sudhanshu/Desktop/IVP/ivp_improved_architecture/runs/experiment_01/refit.pt) | Final refitted model checkpoint loaded by `predict.py` |

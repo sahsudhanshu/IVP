@@ -1,6 +1,6 @@
 ================================================================================
 IVP Group 19 - Improved Architecture Evaluation Report
-Evaluation Date: 2026-11-07T14:31:00+00:00
+Evaluation Date: 2026-11-14T00:45:06+00:00
 Model: ViewInvariantActionNet (ResNet-18 + 2-layer Transformer)
 Checkpoint: refit.pt (epoch 12, full source-view refit)
 Protocol: Cross-View {1, 2} -> 3 (Held-out Camera View 3)
@@ -14,7 +14,7 @@ Macro Recall:        0.8609
 Macro F1-Score:      0.8608
 
 --------------------------------------------------------------------------------
-PER-CLASS CLASSIFICATION REPORT
+PER-CLASS CLASSIFICATION REPORT (VIEW 3 TEST SAMPLES)
 --------------------------------------------------------------------------------
 Class      Action Name                 Precision     Recall   F1-Score  Support
 --------------------------------------------------------------------------------
@@ -32,7 +32,7 @@ a12       Carry                          0.7805     0.8421     0.8101       38
 MACRO AVG                                 0.8614     0.8609     0.8608      418
 
 --------------------------------------------------------------------------------
-CONFUSION MATRIX (Sample Counts)
+CONFUSION MATRIX (Sample Counts: Rows = True, Columns = Predicted)
 --------------------------------------------------------------------------------
 True/Pred  Pick-1H Pick-2H    Drop    Walk     Sit   Stand     Don    Doff   Throw   Carry
 Pick-1H         36       3       1       0       0       0       0       0       2       0

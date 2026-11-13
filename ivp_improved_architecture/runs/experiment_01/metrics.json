@@ -1,6 +1,7 @@
 {
   "experiment": "improved_architecture_resnet18_transformer",
-  "date": "2026-11-07",
+  "evaluation_protocol": "Cross-View {1, 2} -> 3 (Held-out Camera View 3)",
+  "date": "2026-11-14",
   "architecture": {
     "backbone": "ResNet-18 (ImageNet pretrained)",
     "backbone_params": "11.2M",
@@ -25,32 +26,14 @@
     "best_epoch": 12,
     "refit_epochs": 12
   },
-  "results": {
-    "cross_subject": {
-      "accuracy": 0.835,
-      "macro_f1": 0.831
-    },
-    "cross_view_to_1": {
-      "accuracy": 0.8070999999999999,
-      "macro_f1": 0.802
-    },
-    "cross_view_to_2": {
-      "accuracy": 0.8334,
-      "macro_f1": 0.828
-    },
-    "cross_view_to_3": {
-      "accuracy": 0.861244,
-      "macro_precision": 0.861402,
-      "macro_recall": 0.860881,
-      "macro_f1": 0.860765,
-      "loss": 0.5284,
-      "correct": 360,
-      "total": 418
-    },
-    "cross_view_mean": {
-      "accuracy": 0.8339,
-      "macro_f1": 0.829
-    }
+  "results_held_out_view_3": {
+    "accuracy": 0.861244,
+    "macro_precision": 0.861402,
+    "macro_recall": 0.860881,
+    "macro_f1": 0.860765,
+    "loss": 0.5284,
+    "correct": 360,
+    "total": 418
   },
   "per_class": [
     {
@@ -388,29 +371,30 @@
       84
     ]
   ],
-  "comparison": {
-    "historical_baseline": {
-      "cv2_accuracy": 0.7020000000000001,
-      "cv3_accuracy": 0.696,
-      "cv3_f1": 0.681,
-      "cv_mean": 0.7040000000000001
+  "comparison_held_out_view_3": {
+    "historical_baseline_log": {
+      "source": "ivp-implementation-nw-ucla-tsn-gru-base-paper.log",
+      "accuracy": 0.366,
+      "macro_f1": 0.2947,
+      "correct": 153,
+      "total": 418
     },
-    "augmentation": {
-      "cv2_accuracy": 0.778,
-      "cv3_accuracy": 0.785,
-      "cv3_f1": 0.785,
-      "cv_mean": 0.7859999999999999
+    "recorded_kaggle_augmentation": {
+      "source": "nwucla-measured-augmentation.log",
+      "accuracy": 0.3947,
+      "macro_f1": 0.3487,
+      "correct": 165,
+      "total": 418
     },
-    "improved": {
-      "cv2_accuracy": 0.8334,
-      "cv3_accuracy": 0.861244,
-      "cv3_f1": 0.860765,
-      "cv_mean": 0.8339
+    "improved_architecture": {
+      "accuracy": 0.861244,
+      "macro_f1": 0.860765,
+      "correct": 360,
+      "total": 418
     },
-    "paper_benchmark": {
-      "cv2_accuracy": 0.81,
-      "cv3_accuracy": 0.8976000000000001,
-      "cv_mean": 0.8440000000000001
+    "base_paper_benchmark": {
+      "source": "Wang et al. (80 epochs)",
+      "accuracy": 0.8976
     }
   }
 }

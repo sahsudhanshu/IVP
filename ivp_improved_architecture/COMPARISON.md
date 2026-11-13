@@ -2,23 +2,22 @@
 
 ## Evidence Status & Benchmark Summary
 
-All experimental configurations have now been evaluated under consistent protocols on the NW-UCLA dataset (418 complete 3-view groups across 10 action classes).
+All experimental configurations have now been evaluated under consistent protocols on the NW-UCLA dataset (418 complete 3-view groups across 10 action classes) for the held-out Camera View 3 benchmark (Cross-View {1, 2} -> 3).
 
-### Performance Matrix Across All 3 Experimental Stages
+### Cross-View {1, 2} -> 3 Benchmark Comparison
 
-| Protocol | Historical Baseline | Data Augmentation | **Improved Architecture** | Base Paper [1] (80 ep) |
-|---|:---:|:---:|:---:|:---:|
-| **Cross-subject** | 71.8% (F1: 0.708) | 79.2% (F1: 0.785) | **83.5% (F1: 0.831)** | 93.81% |
-| **Cross-view -> 1** | 71.3% (F1: 0.702) | 79.4% (F1: 0.788) | **80.71% (F1: 0.802)** | 82.58% |
-| **Cross-view -> 2** | 70.2% (F1: 0.691) | 77.8% (F1: 0.771) | **83.34% (F1: 0.828)** | **81.00% (Exceeds Paper)** |
-| **Cross-view -> 3** | **69.6% (F1: 0.681)** | **78.5% (F1: 0.785)** | **86.12% (F1: 0.858)** | **89.76%** |
-| **Cross-view Mean** | **70.4% (F1: 0.691)** | **78.6% (F1: 0.781)** | **83.39% (F1: 0.829)** | **84.4%** |
+| Stage | Model Configuration | Epochs | View 3 Accuracy | Macro-F1 | Primary Source Log |
+|---|---|:---:|:---:|:---:|---|
+| **Historical Baseline** | Inception-v3 + GRU | 12 | **36.60%** | **0.2947** | `ivp-implementation-nw-ucla-tsn-gru-base-paper.log` |
+| **Augmentation Run** | Inception-v3 + GRU + Aug | 12 | **39.47%** | **0.3487** | `nwucla-measured-augmentation.log` |
+| **Improved Architecture** | ResNet-18 + Transformer | 20 dev / 12 refit | **86.12%** | **0.8608** | `runs/experiment_01/training.jsonl` |
+| **Base Paper Benchmark [1]** | Wang et al. | 80 | **89.76%** | --- | Published Paper Reference |
 
 ---
 
 ## Architectural Comparison Table
 
-| Aspect | Historical / Augmentation Baseline | Improved Architecture | Rationale & Impact |
+| Aspect | Historical Baseline | Improved Architecture | Rationale & Impact |
 |---|---|---|---|
 | **Spatial encoder** | ImageNet-pretrained Inception-v3 (27M) | ImageNet-pretrained ResNet-18 (11.2M) | Compact feature extractor prevents overfitting on small action datasets. |
 | **Temporal samples** | 4 ordered segments (TSN) | 8 ordered segments | Doubles temporal coverage, resolving motion ambiguity in multi-phase actions. |
