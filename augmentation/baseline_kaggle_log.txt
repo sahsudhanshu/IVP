@@ -1,0 +1,88 @@
+
+Sudhanshu Sah · 11m ago · 2 views · Private
+NW UCLA TSN GRU BN Inception Baseline
+NW UCLA TSN GRU BN Inception Baseline
+
+Share
+
+Edit
+
+Download
+Logs
+
+Download Logs
+Successfully ran in 567.6s
+Accelerator
+GPU T4 x2
+
+Environment
+Latest Container Image
+
+Output
+184.76 MB
+
+Time
+#
+Log Message
+7.8s	1	0.00s - Debugger warning: It seems that frozen modules are being used, which may
+7.8s	2	0.00s - make the debugger miss breakpoints. Please pass -Xfrozen_modules=off
+7.8s	3	0.00s - to python to disable frozen modules.
+7.8s	4	0.00s - Note: Debugging will proceed. Set PYDEVD_DISABLE_FILE_VALIDATION=1 to disable this validation.
+8.5s	5	0.00s - Debugger warning: It seems that frozen modules are being used, which may
+8.5s	6	0.00s - make the debugger miss breakpoints. Please pass -Xfrozen_modules=off
+8.5s	7	0.00s - to python to disable frozen modules.
+8.5s	8	0.00s - Note: Debugging will proceed. Set PYDEVD_DISABLE_FILE_VALIDATION=1 to disable this validation.
+14.5s	9	  Installing build dependencies ... [?25l[?25hdone
+14.8s	10	  Getting requirements to build wheel ... [?25l[?25hdone
+15.0s	11	  Preparing metadata (pyproject.toml) ... [?25l[?25hdone
+15.6s	12	  Building wheel for pretrainedmodels (pyproject.toml) ... [?25l[?25hdone
+16.9s	13	Note: you may need to restart the kernel to use updated packages.
+141.9s	14	/tmp/ipykernel_23/3472778873.py:77: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+141.9s	15	  picks=df.groupby("action",group_keys=False).apply(lambda x:x.sample(1,random_state=SEED))
+141.9s	16	
+141.9s	17	/tmp/ipykernel_23/3472778873.py:77: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+141.9s	18	  picks=df.groupby("action",group_keys=False).apply(lambda x:x.sample(1,random_state=SEED))
+143.5s	19	EDA {'videos': 1475, 'actions': 10, 'subjects': 10, 'views': 3, 'frames_median': 16, 'root': '/kaggle/input/datasets/vichanshur/ivp-course-project-extracted-dataset/nwucla-rgb-reusable/NW-UCLA/multiview_action_videos'} class_map {1: 0, 2: 1, 3: 2, 4: 3, 5: 4, 6: 5, 8: 6, 9: 7, 11: 8, 12: 9} three_view_groups 418
+143.5s	20	cross-view [2, 3] to 1: 435 training pairs, 514 test videos
+143.5s	21	cross-view [1, 3] to 2: 436 training pairs, 501 test videos
+143.5s	22	cross-view [1, 2] to 3: 474 training pairs, 460 test videos
+193.6s	23	cross_view_{1,2}_to_3 {'epoch': 1, 'train_loss': 2.269813684471549, 'train_acc': 0.1518987341772152, 'lr': 0.001}
+222.3s	24	cross_view_{1,2}_to_3 {'epoch': 2, 'train_loss': 2.0896249149419086, 'train_acc': 0.19831223628691982, 'lr': 0.001}
+251.3s	25	cross_view_{1,2}_to_3 {'epoch': 3, 'train_loss': 2.045214870308019, 'train_acc': 0.21940928270042195, 'lr': 0.001}
+280.8s	26	cross_view_{1,2}_to_3 {'epoch': 4, 'train_loss': 2.0585779804217665, 'train_acc': 0.21940928270042195, 'lr': 0.001}
+310.6s	27	cross_view_{1,2}_to_3 {'epoch': 5, 'train_loss': 2.1164294806965294, 'train_acc': 0.22151898734177214, 'lr': 0.001}
+340.6s	28	cross_view_{1,2}_to_3 {'epoch': 6, 'train_loss': 1.9884564496796846, 'train_acc': 0.26371308016877637, 'lr': 0.001}
+370.9s	29	cross_view_{1,2}_to_3 {'epoch': 7, 'train_loss': 1.9636515062066573, 'train_acc': 0.2721518987341772, 'lr': 0.001}
+401.3s	30	cross_view_{1,2}_to_3 {'epoch': 8, 'train_loss': 1.9035310554102, 'train_acc': 0.270042194092827, 'lr': 0.001}
+432.6s	31	cross_view_{1,2}_to_3 {'epoch': 9, 'train_loss': 1.9304503721778403, 'train_acc': 0.25738396624472576, 'lr': 0.001}
+463.9s	32	cross_view_{1,2}_to_3 {'epoch': 10, 'train_loss': 1.9084690826854624, 'train_acc': 0.23628691983122363, 'lr': 0.001}
+494.4s	33	cross_view_{1,2}_to_3 {'epoch': 11, 'train_loss': 1.838299936760327, 'train_acc': 0.28270042194092826, 'lr': 0.001}
+524.5s	34	cross_view_{1,2}_to_3 {'epoch': 12, 'train_loss': 1.8317388540078818, 'train_acc': 0.2805907172995781, 'lr': 0.001}
+557.2s	35	COMPLETE {
+557.2s	36	  "device": "cuda",
+557.2s	37	  "output": "/kaggle/working/basepaper_nwucla_results",
+557.2s	38	  "results": [
+557.2s	39	    {
+557.2s	40	      "experiment": "cross_view_{1,2}_to_3",
+557.2s	41	      "test_accuracy": 0.13260869565217392,
+557.2s	42	      "macro_f1": 0.05950422053638209,
+557.2s	43	      "test_samples": 460
+557.2s	44	    }
+557.2s	45	  ],
+557.2s	46	  "eda": {
+557.2s	47	    "videos": 1475,
+557.2s	48	    "actions": 10,
+557.2s	49	    "subjects": 10,
+557.2s	50	    "views": 3,
+557.2s	51	    "frames_median": 16,
+557.2s	52	    "root": "/kaggle/input/datasets/vichanshur/ivp-course-project-extracted-dataset/nwucla-rgb-reusable/NW-UCLA/multiview_action_videos"
+557.2s	53	  }
+557.2s	54	}
+562.7s	55	/usr/local/lib/python3.13/dist-packages/mistune.py:435: SyntaxWarning: invalid escape sequence '\|'
+562.7s	56	  cells[i][c] = re.sub('\\\\\|', '|', cell)
+562.9s	57	/usr/local/lib/python3.13/dist-packages/nbconvert/filters/filter_links.py:36: SyntaxWarning: invalid escape sequence '\_'
+562.9s	58	  text = re.sub(r'_', '\_', text) # Escape underscores in display text
+563.6s	59	[NbConvertApp] Converting notebook __notebook__.ipynb to notebook
+563.7s	60	[NbConvertApp] Writing 27465 bytes to __notebook__.ipynb
+566.2s	61	[NbConvertApp] Converting notebook __notebook__.ipynb to html
+566.8s	62	[NbConvertApp] Writing 389777 bytes to __results__.html

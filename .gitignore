@@ -1,0 +1,40 @@
+# Python environments and generated caches
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+.ipynb_checkpoints/
+.pytest_cache/
+.mypy_cache/
+
+# Locally installed dependencies and temporary files
+.kaggle_cli_deps/
+.model_test_deps/
+tmp/
+*.tmp
+
+# Large datasets, archives and model weights (keep these in Drive)
+*.zip
+*.7z
+*.tar
+*.tar.gz
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+
+# LaTeX build intermediates (retain source and PDF)
+*.aux
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+Course_Project_Group_19/05_Summary_Paper/Project_Report.log
+
+# Credentials and OS metadata
+kaggle.json
+access_token
+.DS_Store
+Thumbs.db

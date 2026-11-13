@@ -1,0 +1,124 @@
+\documentclass[runningheads]{llncs}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{url}
+\title{Temporal Fusion and View Disentanglement for Multi-View Action Recognition: A Comparative Review}
+\titlerunning{Temporal Fusion and View Disentanglement}
+\author{Vichanshu Raj \and Satwik Santosh \and Vishwas Pahwa \and Sudhanshu \and Kyan Mahajan \and Saumya Sood \and Akshat Parmar}
+\authorrunning{IVP Group 19}
+\institute{Image and Video Processing Course Project, Group 19}
+\begin{document}
+\maketitle
+\begin{abstract}
+Recognizing the same human action across camera viewpoints requires a representation that captures motion while limiting dependence on appearance and scene geometry. This paper consolidates two relevant approaches: the multi-branch temporal segment network integrated with a gated recurrent unit proposed by Bui and Nguyen, and DVANet proposed by Siddiqui, Tirupattur and Shah. The former aggregates ordered snippets and combines view-specific features; the latter separates action and view representations using transformer queries and supervised contrastive objectives. We compare their architectures, supervision, inference requirements, published evaluations and practical limitations. We further position a course-project implementation based on Inception-v3 and clip-consistent augmentation within this literature. The recorded project evaluation achieved 39.47\% on 418 target-view groups; a separately supplied local result is distinguished from that recorded run. Published scores are interpreted in the context of their protocols rather than combined into a single ranking. The analysis motivates controlled augmentation studies followed by representation-level view disentanglement.
+\keywords{Multi-view action recognition \and Temporal segment networks \and GRU \and Disentanglement \and Contrastive learning}
+\end{abstract}
+
+\section{Introduction}
+Human action recognition maps video observations to semantic action classes. A change in camera position can alter body configuration in the image, the visibility of an object and the background, even when the action remains unchanged. Multi-view learning can exploit complementary observations, but it also creates a risk: the representation may learn the camera or environment instead of the action. A robust system therefore needs both temporal modeling and an explicit account of viewpoint variation.
+
+The two selected papers address different parts of this problem. Bui and Nguyen~\cite{bui} extend temporal segment networks (TSN) with view-specific branches and recurrent consensus. Siddiqui et al.~\cite{dva} introduce DVANet to disentangle action-relevant and view-relevant features. We ask three questions: how does each method represent temporal information, how is camera variation handled, and what can be concluded from the reported results? This is a comparative summary and course-project analysis, not a claim to reproduce DVANet.
+
+\section{Literature Review of Both Papers}
+\subsection{Multi-branch TSN with GRU}
+TSN samples snippets from different temporal segments to cover an entire video without processing every frame~\cite{tsn}. Bui and Nguyen retain this sparse sampling principle and expand the network to multiple camera branches~\cite{bui}. A shared Inception-BN encoder extracts features common to the inputs. A separate $3\times3$ convolution block in each branch refines view-specific information. The authors replace average consensus with a shared GRU, retaining the last recurrent output as the video descriptor. Concatenation fuses the camera descriptors before classification.
+
+The benefit of this design is its separation of shared appearance extraction, camera-specific refinement and order-sensitive temporal aggregation. Average consensus ignores the ordering of the sampled features; a GRU can use earlier snippets when processing later ones. However, concatenation alone does not force the fused descriptor to be invariant to camera position. The model also depends on the availability and pairing of camera clips during multi-branch training.
+
+\subsection{DVANet}
+DVANet uses a hybrid encoder--decoder architecture to learn separate action and view features~\cite{dva}. A video encoder produces spatiotemporal features, and a transformer decoder receives multiple learnable action queries and one view query. Action-query outputs are averaged into an action descriptor; the view query produces a separate view descriptor. Both descriptors receive classification supervision during training, whereas action prediction is used at inference.
+
+The authors supplement classification with two contrastive losses and query orthogonality. The contrastive objectives encourage the same action from different cameras to be close in the action space, while videos from the same camera are close in the view space. This makes viewpoint an explicit factor of the learning objective rather than a nuisance that the classifier must implicitly ignore. The method requires view labels and carefully constructed training triplets. Its additional losses and queries also increase the implementation and tuning burden relative to a simple temporal fusion network.
+
+\section{Methodology and Proposed Approach}
+\subsection{Temporal and multi-view fusion}
+Let a video from camera $v$ be divided into $K$ temporal segments. A snippet $T_{v,k}$ is sampled from segment $k$. With shared encoder $F$ and view-specific refinement $R_v$, the snippet representation is
+\begin{equation}
+z_{v,k}=R_v(F(T_{v,k})).
+\end{equation}
+The shared GRU aggregates snippets in chronological order:
+\begin{equation}
+h_{v,k}=\operatorname{GRU}(z_{v,k},h_{v,k-1}),\qquad
+\hat y=\operatorname{softmax}(W[h_{1,K};\ldots;h_{V,K}]+b).
+\end{equation}
+These equations describe the reviewed design at a high level; they do not establish unpublished layer widths. In the paper's cross-view evaluation, two source cameras feed the two training branches. At testing, the unseen target-camera clip is duplicated into both branches~\cite{bui}. The duplication is an inference convention, not access to a second target-camera observation.
+
+\subsection{Action--view disentanglement}
+DVANet constructs a triplet consisting of an anchor $a$, a same-action video $s_a$ from another view, and a same-view video $s_v$ showing another action~\cite{dva}. The action-space objective decreases $D(f_a(a),f_a(s_a))$ relative to $D(f_a(a),f_a(s_v))$. The view-space objective reverses these roles: the same-view sample is positive and the same-action, different-view sample is negative. Thus, the two spaces are trained to retain different factors.
+
+The total objective combines action and view cross-entropy, action and view contrastive terms, and an orthogonality term:
+\begin{equation}
+\mathcal L=\mathcal L_{a,ce}+\mathcal L_{v,ce}+\mathcal L_{a,c}
++\mathcal L_{v,c}+\mathcal L_{ortho}.
+\end{equation}
+The orthogonality term penalizes the absolute cosine similarity between distinct action queries. This discourages redundant queries but is not a guarantee of statistically independent representations. Triplet construction, loss balance and view supervision remain essential.
+
+\subsection{Course-project approach}
+The implemented extension is a practical augmentation study on the TSN--GRU architecture. It uses Inception-v3 instead of the paper's Inception-BN, four snippets per view, a $256$-dimensional refinement representation and a shared GRU with $128$ hidden units. These are project implementation choices, so the system should be described as an adaptation rather than an exact reproduction.
+
+For each training clip, one horizontal-flip decision with probability $0.5$ is reused across its four frames. Independently, photometric augmentation is enabled with probability $0.5$: contrast is drawn from $[0.9,1.1]$ and brightness offset from $[-8,8]$ on the $0$--$255$ pixel scale. The settings are shared within a clip but drawn separately for each camera. Images are clipped to the valid range before ImageNet normalization. Validation and test use deterministic sampling without these transforms. Temporal consistency avoids artificial left--right changes between snippets, but flipping may still interact with camera geometry and should be tested in an ablation.
+
+As a future extension, a view-classification or contrastive auxiliary objective could be added to the temporal model. This proposal is motivated by DVANet; it has not been implemented or evaluated in the submitted experiment.
+
+\section{Comparative Analysis}
+\begin{table}[t]
+\caption{Conceptual comparison of the two selected papers.}
+\centering\small
+\begin{tabular}{p{2.4cm}p{4.1cm}p{4.1cm}}
+\hline
+Aspect & Multi-branch TSN--GRU & DVANet\\\hline
+Temporal modeling & Sparse snippets; recurrent consensus & Spatiotemporal encoder and transformer decoder\\
+View handling & Camera branches and late concatenation & Separate action/view queries and supervision\\
+Training objective & Action classification & Classification, contrastive and orthogonality terms\\
+Inference & Multi-branch fusion; duplicated target clip in cross-view setup & Action descriptor and action classifier\\
+Main strength & Explicit snippet order; shared feature extraction & Direct pressure toward action--view separation\\
+Main limitation & Fusion need not remove viewpoint information & Requires view labels, triplets and multiple objectives\\\hline
+\end{tabular}
+\end{table}
+
+The methods should not be viewed simply as a small and a large version of the same network. Multi-branch TSN--GRU exploits complementary camera descriptors, while DVANet explicitly seeks to exclude view information from the action descriptor. Shared encoders reduce parameter duplication in the first method; contrastive supervision supplies additional learning signals in the second. Neither architecture by itself resolves dataset leakage, label errors or evaluation mismatch.
+
+Computational cost cannot be ranked from architecture names alone. Sparse sampling limits the frames processed by TSN, but multiple camera branches increase per-action input. DVANet uses extra triplet videos during training but predicts actions from the action representation at inference. A fair efficiency comparison would report frames, resolution, hardware, batch size, parameter count and end-to-end latency under the same conditions. Such a matched benchmark is not available in this project.
+
+\section{Results and Discussion}
+\subsection{Published evidence}
+Bui and Nguyen report 93.81\% action-level cross-subject accuracy on NUMA/N-UCLA with GRU consensus, compared with 88.49\% for their multi-branch model without GRU~\cite{bui}. Their three cross-view results are 82.58\%, 81.00\% and 89.76\%, with a reported mean of 84.4\%. They train for 80 epochs, starting at learning rate $0.001$ and reducing it at epochs 30 and 60. The authors explicitly caution that action-level and video-level comparisons are not directly equivalent.
+
+DVANet reports 94.4\% cross-subject and 96.5\% cross-view accuracy on N-UCLA in Table 4~\cite{dva}. These numbers should not be subtracted directly from the three-split mean of the earlier paper to claim a controlled improvement: aggregation and protocol definitions must first be aligned. DVANet also evaluates NTU RGB+D, NTU RGB+D 120 and PKU-MMD. On PKU-MMD cross-subject, its full loss configuration reaches 95.8\%; removing both contrastive losses gives 94.2\%, and removing the orthogonality loss gives 95.0\%. These ablations support the usefulness of the training objectives in that setting rather than proving the same gain on every dataset.
+
+\subsection{Project evidence and provenance}
+The saved Kaggle outputs contain a completed 12-epoch development stage followed by a fresh 12-epoch refit. Subject 10 is held out from source-view pairs during development (43 validation samples). The refit uses all 418 complete source pairs and tests the unseen view-3 clip, duplicated into the two branches. The recorded final accuracy is $165/418=39.47\%$, macro-F1 is $0.3487$, and cross-entropy loss is $2.0077$. Predictions reproduce the stored accuracy and macro-F1. Development epoch 12 validation accuracy is 62.79\%; it is measured on a different set and must not be presented as target-view performance.
+
+The historical presentation reports 36.6\% accuracy and 0.295 macro-F1 for the comparable target direction. The recorded difference is approximately 2.87 percentage points. This is descriptive evidence only: random training history, frame transformations and other implementation choices differ. A matched baseline across several seeds is necessary to attribute the change to augmentation.
+
+The project owner separately supplies a local result of 78.47\% ($328/418$) and macro-F1 $0.7845$. These files are retained separately in the submission. Their execution provenance has not been independently established during packaging, and their stated historical reference of 69.6\% differs from the presentation's 36.6\%. Accordingly, this review does not use the local figure as verified evidence of a performance gain.
+
+\begin{table}[t]
+\caption{Results with explicit scope; rows are not a controlled ranking.}
+\centering\small
+\begin{tabular}{p{5.9cm}r p{2.7cm}}
+\hline
+Source and evaluation & Accuracy & Status\\\hline
+TSN--GRU paper, three-split cross-view mean & 84.4\% & Published\\
+DVANet paper, N-UCLA cross-view & 96.5\% & Published\\
+Historical project, target view 3 & 36.6\% & Presentation/log\\
+Augmented project, target view 3 & 39.47\% & Recorded Kaggle run\\
+Separate local run, target view 3 & 78.47\% & Owner supplied\\\hline
+\end{tabular}
+\end{table}
+
+Several limitations remain. The project uses fewer epochs and a different backbone from the base paper. Only one augmented target direction and one seed were evaluated in the recorded run. Grouping depends on matching action, subject and event identifiers across cameras; this correspondence requires independent dataset validation. Photometric jitter targets illumination variation but cannot synthesize unseen geometry or restore occluded evidence. These constraints motivate both careful experimental controls and representation-level extensions.
+
+\section{Conclusion and Future Scope}
+Temporal fusion and view disentanglement provide complementary responses to multi-view action recognition. TSN--GRU emphasizes coverage of the video and order-aware aggregation; DVANet uses explicit action/view representations and structured supervision to reduce viewpoint interference. Their reported results support these ideas within their respective protocols, while the project demonstrates the practical difficulty of reproducing them under reduced training budgets.
+
+The next steps are a matched augmentation ablation over multiple seeds, complete cross-view evaluation, verification of camera pairing, and reporting of precision, recall, macro-F1 and latency with confidence intervals. A subsequent research extension may combine recurrent temporal descriptors with action/view supervision. Claims about that extension must follow implementation and evaluation rather than precede them.
+
+\begin{thebibliography}{4}
+\bibitem{bui} Bui, A.-V., Nguyen, T.-O.: Multi-view human action recognition based on TSN architecture integrated with GRU. Procedia Computer Science \textbf{176}, 948--955 (2020). \url{https://doi.org/10.1016/j.procs.2020.09.090}
+\bibitem{dva} Siddiqui, N., Tirupattur, P., Shah, M.: DVANet: Disentangling view and action features for multi-view action recognition. In: Proceedings of the AAAI Conference on Artificial Intelligence \textbf{38}, 4873--4881 (2024).
+\bibitem{tsn} Wang, L., Xiong, Y., Wang, Z., Qiao, Y., Lin, D., Tang, X., Van Gool, L.: Temporal segment networks: Towards good practices for deep action recognition. In: Computer Vision -- ECCV 2016, pp. 20--36. Springer (2016).
+\bibitem{data} Wang, J., Nie, X., Xia, Y., Wu, Y., Zhu, S.-C.: Cross-view action modeling, learning, and recognition. In: Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition, pp. 2649--2656 (2014).
+\end{thebibliography}
+\end{document}

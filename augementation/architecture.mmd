@@ -1,0 +1,18 @@
+flowchart LR
+ A[NW-UCLA RGB videos] --> B[Inventory and group views]
+ B --> C[Split by subject or camera]
+ C --> D[Training source views]
+ C --> E[Validation or held-out target]
+ D --> F[Sample four ordered snippets]
+ F --> G[Resize and center crop 224 x 224]
+ E --> H[Deterministic snippet sampling]
+ H --> I[Resize and center crop 224 x 224]
+ G --> Q[Clip-consistent brightness and contrast]
+ Q --> J[BGR normalization]
+ I --> J
+ J --> K[Shared pretrained BN-Inception]
+ K --> L[Per-view 3x3 refinement]
+ L --> M[Shared GRU across ordered snippets]
+ M --> N[Concatenate view features]
+ N --> O[Dropout and 10-class classifier]
+ O --> P[Training loss or evaluation metrics]

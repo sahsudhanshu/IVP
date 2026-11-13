@@ -1,0 +1,71 @@
+================================================================================
+IVP Group 19 | Multi-View Human Action Recognition: TSN + GRU Evaluation Log
+Model: Inception-v3 Shared Backbone + 2-Branch 3x3 Conv Refine + Shared GRU
+Evaluation Protocol: Cross-View {1, 2} -> 3 (Unseen Camera View 3 Holdout)
+Dataset: NW-UCLA Multiview Action Dataset (10 Actions, 418 Complete 3-View Groups)
+Execution Date: 2026-11-01T19:15:22+00:00 | Hardware: NVIDIA Tesla T4 (CUDA 12.8)
+================================================================================
+
+[HISTORICAL REFERENCE BENCHMARK (Results Slide)]
+  - Cross-subject:      71.8% (Macro-F1: 0.708)  | Paper [1]: 93.81%
+  - Cross-view -> 1:    71.3% (Macro-F1: 0.702)  | Paper [1]: 82.58%
+  - Cross-view -> 2:    70.2% (Macro-F1: 0.691)  | Paper [1]: 81.00%
+  - Cross-view -> 3:    69.6% (Macro-F1: 0.681)  | Paper [1]: 89.76%
+  - Cross-view Mean:    70.4% (Macro-F1: 0.691)  | Paper [1]: 84.40%
+
+[CURRENT DATA AUGMENTATION PIPELINE RESULTS]
+  - Policy: Clip-consistent horizontal flip (p=0.5) + Photometric jitter (p=0.5, contrast [0.9, 1.1], brightness [-8, 8])
+  - Cross-subject:      79.2% (Macro-F1: 0.785)  [+7.4% over historical baseline]
+  - Cross-view -> 1:    79.4% (Macro-F1: 0.788)  [+8.1% over historical baseline]
+  - Cross-view -> 2:    77.8% (Macro-F1: 0.771)  [+7.6% over historical baseline]
+  - Cross-view -> 3:    78.5% (Macro-F1: 0.785)  [+8.9% over historical baseline]
+  - Cross-view Mean:    78.6% (Macro-F1: 0.781)  [+8.2% over historical baseline]
+
+--------------------------------------------------------------------------------
+DETAILED TEST EVALUATION REPORT: CROSS-VIEW {1, 2} -> 3
+--------------------------------------------------------------------------------
+Total Test Samples: 418
+Correct Predictions: 328
+Overall Test Accuracy: 78.47% (reported as 78.5%)
+Test Cross-Entropy Loss: 0.8142
+Macro-Average Precision: 0.7870 (78.7%)
+Macro-Average Recall:    0.7837 (78.4%)
+Macro-Average F1-Score:  0.7845 (0.785)
+Weighted Average F1:     0.7848
+
+--------------------------------------------------------------------------------
+PER-CLASS CLASSIFICATION BREAKDOWN (10 ACTIONS)
+--------------------------------------------------------------------------------
+Class ID | Action Description             | Precision |  Recall  | F1-Score | Support
+---------+--------------------------------+-----------+----------+----------+--------
+a01      | pick up with one hand          |   0.7021  |  0.7857  |  0.7416  |    42
+a02      | pick up with two hands         |   0.8293  |  0.7907  |  0.8095  |    43
+a03      | drop trash                     |   0.8286  |  0.8056  |  0.8169  |    36
+a04      | walk around                    |   0.7234  |  0.7556  |  0.7391  |    45
+a05      | sit down                       |   0.9070  |  0.9070  |  0.9070  |    43
+a06      | stand up                       |   0.8444  |  0.8444  |  0.8444  |    45
+a08      | donning (put on jacket)        |   0.7619  |  0.7442  |  0.7529  |    43
+a09      | doffing (take off jacket)      |   0.7500  |  0.7674  |  0.7586  |    43
+a11      | throw                          |   0.8235  |  0.7000  |  0.7568  |    40
+a12      | carry                          |   0.7000  |  0.7368  |  0.7179  |    38
+---------+--------------------------------+-----------+----------+----------+--------
+Macro Avg|                                |   0.7870  |  0.7837  |  0.7845  |   418
+Weighted |                                |   0.7877  |  0.7847  |  0.7848  |   418
+
+--------------------------------------------------------------------------------
+CONFUSION MATRIX (Rows: Ground Truth, Columns: Predicted)
+--------------------------------------------------------------------------------
+         a01  a02  a03  a04  a05  a06  a08  a09  a11  a12 | Total
+   a01 [  33    4    2    0    0    0    0    0    3    0 ] |   42
+   a02 [   5   34    0    0    0    0    0    0    0    4 ] |   43
+   a03 [   4    0   29    0    0    0    0    0    3    0 ] |   36
+   a04 [   0    0    0   34    0    3    0    0    0    8 ] |   45
+   a05 [   0    0    0    0   39    4    0    0    0    0 ] |   43
+   a06 [   0    0    0    3    4   38    0    0    0    0 ] |   45
+   a08 [   0    0    0    0    0    0   32   11    0    0 ] |   43
+   a09 [   0    0    0    0    0    0   10   33    0    0 ] |   43
+   a11 [   5    0    4    3    0    0    0    0   28    0 ] |   40
+   a12 [   0    3    0    7    0    0    0    0    0   28 ] |   38
+
+Evaluation finished successfully with exit code 0.
+Artifacts generated: confusion_matrix.png, learning_curves.png, test_predictions.csv, refit_checkpoint.pt

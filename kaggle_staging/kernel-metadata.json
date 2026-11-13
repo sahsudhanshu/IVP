@@ -1,0 +1,18 @@
+{
+  "id": "sudhanshusah/nw-ucla-tsn-gru-bn-inception-baseline",
+  "title": "NW UCLA TSN GRU BN Inception Baseline",
+  "code_file": "ivp_bn_inception_prepared.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "vichanshur/ivp-course-project-extracted-dataset",
+    "mhiro2/pytorch-pretrained-models"
+  ],
+  "competition_sources": [],
+  "kernel_sources": [],
+  "model_sources": []
+}

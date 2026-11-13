@@ -1,0 +1,326 @@
+ScienceDirect
+Available online at www.sciencedirect.com
+Procedia Computer Science 176 (2020) 948–955
+1877-0509 © 2020 The Authors. Published by Elsevier B.V.
+This is an open access article under the CC BY-NC-ND license (https://creativecommons.org/licenses/by-nc-nd/4.0)
+Peer-review under responsibility of the scientific committee of the KES International.
+10.1016/j.procs.2020.09.090
+© 2020 The Authors. Published by Elsevier B.V.
+This is an open access article under the CC BY-NC-ND license (https://creativecommons.org/licenses/by-nc-nd/4.0)
+Peer-review under responsibility of the scientific committee of the KES International.
+Keywords: Multi-view; Action recognition; Deep learning; TSN; GRU
+1. Introduction
+Every action, no matter if it is important or not, is done for some purpose. In fact, the interaction of people with the
+surrounding environment can be observed via human eyes or cameras. Through the vision system, we can understand
+the action; however, it is costly to use humans in many cases. Instead, people want machines to perform the same task
+as humans. Therefore, researchers have made great eﬀort to imitate the human ability of understanding actions in many
+scenarios. Many systems only require dynamics collected from one view; for example, hand gestures understanding
+systems often ask users to perform at a ﬁxed view only while other applications might be installed with multiple
+views attached. Recently, multi-view action recognition has become attractive as the multi-sensors are widely applied
+in diﬀerent real-world applications. The advantages of using multiple camera views over traditionally single view
+can be listed such as: easing the localization of the actor’s position, overcoming cases in which the actor’s body is
+∗Corresponding author. Tel.: (+84) 943.206.566
+E-mail address: oanh.nguyenthi@hust.edu.vn
+24th International Conference on Knowledge-Based and Intelligent Information & Engineering
+Systems
+Multi-view Human Action Recognition Based on TSN Architecture
+Integrated with GRU
+Anh-Vu Buia, Thi-Oanh Nguyena,∗
+a Hanoi University of Science and Technology, No. 1, Dai Co Viet, Hai Ba Trung, Hanoi, Viet Nam
+Abstract
+Human action recognition is one of the most important problems in computer vision. In this paper, we propose a novel architecture
+for multi-view human action recognition. The proposal exploits the temporal features and fuses the information from diﬀerent
+camera views. Based on the idea of TSN (Temporal Segment Networks) which is working with segments of videos, we recommend
+aggregating scores from segments by an RNN (Recurrent Neural Network) module to enhance the quality of dynamics features.
+Furthermore, the proposed architecture is designed to form a multi-branch network with each branch taking responsibility for
+extracting a view-speciﬁc information, and the ﬁnal feature is formed by combining results from branches lastly. Experiments on
+two datasets NUMA and MicaHandGesture have proved that the proposed architecture works eﬀectively in diﬀerent scenarios. Our
+model has achieved promising results with the accuracy slightly surpass other previous works.
+
+	
+Anh-Vu Bui  et al. / Procedia Computer Science 176 (2020) 948–955
+949
+occluded by other objects in the frames, enhancing the learnt features due to views-interaction, etc. Because of these
+utilities, this paper proposes a novel architecture which contains diﬀerent branches while each branch is responsible
+for extracting view-speciﬁc feature from a single view. The branch is built by inheriting the idea of the famous
+network TSN (Temporal segment networks) [13] by dividing video into segments of frames. After that, a GRU (Gated
+Recurrent Unit) module is attached at the middle of the network to eﬀectively aggregate ordered segments in the
+videos. Finally, the features calculated from all views are fused together with an expectation that the enriched feature
+will promote the ﬁnal accuracy of the model. The results are evaluated on NUMA and MicaHandGesture datasets with
+good results for both cross-subject and cross-view scenarios. Our paper is divided into four parts. Section 1 oﬀers an
+overview of multi-view action recognition and the method that we used , section 2 reviews related works which
+focused on classical and deep-learning based techniques. After that, we explain details of proposed architectures in
+section 3. Section 4 is devoted to experimental results and discussions. Finally, conclusions are presented in section 5.
+2. Related works
+Researchers have made signiﬁcant contributions in designing eﬀective features as well as classiﬁers for action
+recognition [1, 4, 5, 7, 9].
+Kong et al. [6] published their work on designing a feature called deeply learnt view-invariant features. The paper
+addresses that classifying human’s action from varied views is a challenging task and proposes a model that learns
+both view-speciﬁc features and shared features by using the input from many camera views. A sample-aﬃnity matrix
+is then used to balance the information transfer among views and limit the information transfer across samples of
+videos. Likely, DongangWang et al. [11] also exploited the beneﬁts of using multiple views in training the model of
+recognizing human actions. However, the architecture is designed to hold many branches and each the input from a
+view is led into its own branch. Each branch after the training process could learn the most speciﬁc information from
+a view. Afterwards, a module called message passing module is set up that allows branches to interact with each other
+to reﬁne the features from each branch. Finally, a system of classiﬁers is placed at each branch end to ﬁnd the ratio of
+contribution of features in each branch to the ﬁnal features.
+Temporal segment networks (TSN) by L. Wang et al., 2016 [13] produces an assumption that motion does not vary
+suddenly in consecutive frames. Hence, by implementing sparse sampling on a long-range video the accuracy will be
+increased. Furthermore, TSN works with segments of videos then combines the results from segments together for
+ﬁnal prediction. In the training phases, the authors even apply some augmentation techniques to prevent the model
+from lacking training data and overﬁtting that they call corner cropping and scale-jittering. However, the segments
+consensus does not take into account the chronological order of the segments. Besides, Lu & Nguyen [10] has pro-
+posed some improvements on the original TSN. Their work focuses on how eﬀectively the TSN model works if the
+combining function at global level is replaced. The authors have else proposed a multi-level integration schema for a
+two-streams model to integrate information between streams. The experimental results conﬁrmed the advantages of
+LSTM module and multi-level integration schema for human action recognition.
+3. Proposed methods
+3.1. Basic TSN
+Recent researches on human action recognition often face the same problem of modeling long-range temporal
+structure due to the restriction of retrieving action features. One of the reasons is that they are only able to perform
+on a single frame or a stack of frames but in short snippets. However, TSN [13] diﬀers from those methods by its
+spare sampling policy to model the dynamics over the entire video. Instead of working with frames, TSN process a
+series of snippets that are extracted from a full-length video. A snippet itself produces a preliminary prediction of
+action classes.In the next step, a consensus is applied to aggregate the calculation on segments together to produce the
+video-level prediction. The core idea of TSN is illustrated as in Figure 1. In which, a video is divided into K segments
+
+950	
+Anh-Vu Bui  et al. / Procedia Computer Science 176 (2020) 948–955
+Fig. 1. Architecture of TSN [13].
+S 1, S 2, S 3, . . . S K with equal duration. After that, each snippet Tk is randomly picked from the corresponding segment
+S k. Then, the TSN will model the sequence of snippets as follow:
+TS N(T1, T2, ...TK) = H(G(F(T1; W), ..., F(TK; W)))
+(1)
+with F(Tk; W) is a function operates a CNN (Convolutional neural network) with the parameter W on the snippet
+Tk to produce a preliminary prediction score. G is the consensus which is used to aggregate the scores from all
+segments together to construct the video-level prediction score. In the original paper, G is the average pooling with
+gi = 1
+K
+K
+k=1 f k
+i . Finally, H which is a softmax function is chosen to be the classiﬁcation.
+3.2. Multi-branch TSN
+The action features from diﬀerent views of the same action could share a lot of information in common; however,
+they also contain their own characteristics that are only available in the corresponding views. Thus, fusing that infor-
+mation might strengthen the eﬀectiveness of the features extracted. The mentioned assumption leads to the idea that
+we decided to expand the TSN [13] to a multi-branch network as in Figure 2 that accepts the input from multiple cam-
+era views. In the Multi-branch TSN, the Inception-BN is kept extracting low-level features of action for all branches.
+Low-level features can be considered as information representing basic primitives, they can be similar between views,
+so we use the shared Inception-BN for all views. From there on, the low-level feature is delivered to its branch, and
+the number of branches in the network is up to the number of available views. As mentioned earlier, each branch’s
+main function is to extract a view-speciﬁc feature of action; hence, it only accepts the input comes from a single
+view. For the ﬁrst version, our branch inherits from the TSN by applying the policy of sparse sampling and working
+with sequences of snippets instead of frames, the snippets are then aggregated by an average pooling as a consensus.
+On another hand, because the Inception-BN is shared among branches, a block of 3x3 convolution is placed in each
+branch as shown in Figure 2 for reﬁning most speciﬁc details from each view. Finally, the features outputted from
+branches are combined by a concatenation before being fed into the classiﬁer.
+3.3. Multi-branch TSN with GRU
+As we discussed earlier in section 3.1, TSN [13] practices an average pooling layer to connect features from seg-
+ments together. However, average pooling only calculates the mean values of features without considering the order
+of extracted features. In addition, videos are similar to other kinds of sequential data, frames in a video are connected
+together sequentially, and it must be an omission if that information of sequentiality is ignored. The temporal infor-
+mation concealed in the frames also holds the key to motion of performers in the video. Besides, the previous work
+of Lu & Nguyen [10] also proved the role of chronological order of segments in action recognition model. Therefore,
+we expect that by replacing the consensus introduced in the TSN by another could enhance the accuracy of predic-
+tion. Nonetheless, CNNs are not designed to process sequential data. Fortunately, RNNs with the ability to handle
+sequential data and could be nicely cooperated with CNNs to reﬁne our features. On another hand, the features being
+fetched from the RNNs must satisfy the following requirements: able to describe the spatial features of actions, able
+to perform the temporal characteristics of motion. Therefore, we adapt a GRU (Gated recurrent unit) as our consensus
+
+	
+Anh-Vu Bui  et al. / Procedia Computer Science 176 (2020) 948–955
+951
+Fig. 2. The diagram of Multi-branch TSN with inputs collected from 3 views. The features collected from branches before being concatenated to
+form a fused feature of views.
+Fig. 3. The diagram of Multi-branch TSN with inputs collected from 3 views. The features collected from branches before being concatenated to
+form a fused feature of views.
+installed in branches to fuse the features from snippets together as in Figure 3. GRU is a popular RNN module with
+a simple design but eﬀective in training. In the architecture we proposed, a single GRU is attached to the network
+and is shared by branches. The scores of snippets of branches ﬂow to the GRU consensus respectively before they
+are concatenated. The process of calculating the fused feature is illustrated in Figure 4. Each score of snippets goes
+through the GRU in order, at each step, GRU produces a vector hi that contains the information of its current input
+and its previous inputs with the surrounding context. However, to diminish the cost of computation, we only take the
+ﬁnal output of the GRU which is denoted hK as our ﬁnal calculation for an action video.
+4. Experimental results
+In order to evaluate our proposals, we have done experiments and evaluation on two datasets: NUMA and Mica-
+HandGesture. NUMA1 (also sometimes known as NUCLA dataset) is a public and popular multi-view human action
+dataset captured in Northwestern-UCLA [12]. The dataset includes 10 action categories: pick up with one hand, pick
+up with two hands, drop trash, walk around, sit down, stand up, donning, doﬃng, throw, carry. Besides, this dataset
+contains 1745 RGB videos s and the correlated depth frames and skeleton information performed by 10 actors, and
+captured by 3 cameras. Those cameras are set up at 3 views as illustrated in Figure 5 . MicaHandGesture dataset
+1 http://wangjiangb.github.io/my data.html
+
+952	
+Anh-Vu Bui  et al. / Procedia Computer Science 176 (2020) 948–955
+Fig. 4. Features from ordered snippets are led through GRU consensus.
+Fig. 5. Camera views in NUMA dataset.
+is provided by MICA2, collected from multiple camera viewpoints in indoor environment with complex background.
+It is a subset of the dataset introduced in [2]. This dataset is designed dynamic hand gestures which correspond to
+controlling commands of electronic home appliances. Each gesture is a combination of hand movement following a
+pre-deﬁned direction and changing of hand shape in a natural manner. For each gesture, hand starts from one position
+with close posture, it opens gradually at half cycle of movement then closes gradually to end at the same position and
+posture [2]. However, MicaHandGesture dataset is still in reﬁnement phase and has not yet released to the public. It
+contains 1810 video with 9 hand gestures performed by 10 actors, captured by 5 kinect sensors setup at ﬁve various
+positions in a simulation room of 4mx4m as in Figure 6. Each actor performed several times for a gesture. Currently,
+there is no available others results for multi-view action recognition on this dataset.
+In our experiments, we use only RGB frames as input modality. All experiments are supported by the GeForce GTX
+1080 GPU, with the conﬁguration kept unchanged as in TSN [13]. In detail, the number of epochs is set to 80 while
+the learning rate is initially set to 0.001 and drops by a factor of 10 at 30th epoch and 60th epoch, respectively. Two
+scenarios of evaluation are taken, which are cross-subject and cross-view, respectively. Cross-subject evaluation helps
+to evaluate the model when the actor is unknown. In this experiment, the videos of the testing actor are eliminated in
+the training phase. Variously, cross-view evaluation aims to test how the model performs if the testing view is unseen.
+In cross-view scenarios, the videos from one view are used as testing view; those videos are eliminated in the training
+phases unlike the rest of the dataset.
+4.1. Cross-subject Evaluation
+The NUMA action recognition dataset is performed by 10 diﬀerent subjects (actors). In this experiment, cross-
+evaluation is applied, at each fold an actor is chosen to be the testing actor while the other ones are considered as
+training actors, only actions which are recorded by three camera views are used in the experiment; likely, the same
+strategy is applied for MicaHandGesture dataset. Multi-view is applied at both the training phase and testing phase.
+Table 1 presents experimental results on the NUMA dataset of previous works and our proposals: Multi-Br TSN,
+Multi-Br TSN with GRU. In which, the video-level use one video in the testing phase while action-level exploits
+2 http://mica.edu.vn/
+
+	
+Anh-Vu Bui  et al. / Procedia Computer Science 176 (2020) 948–955
+953
+Fig. 6. Camera views in MicaHandGesture dataset.
+Table 1. The results of cross-subject evaluation on NUMA dataset
+Methods
+Average Accuracy
+Li and Zickler [8]
+50.7%
+Video-level
+MST-AOG [12]
+81.6%
+Kong et al [6]
+81.1%
+TSN [13]
+90.3%
+DA-Net [11]
+92.1%
+Multi-Br TSN
+88.49 %
+Action-level
+Multi-Br TSN with GRU
+93.81 %
+Table 2. The results of cross-subject evaluation on MicaHandGesture dataset
+Methods
+Average Accuracy
+Multi-Br TSN
+81.77%
+Multi-Br TSN with GRU
+88.71%
+all videos from views. The results proved that by using GRU, our proposed model has an improvement of 5,3% in
+accuracy. Although our results (at action-level) and the previous results (at video-level) are not directly compared,
+they are relatively comparable. Our results are also comparative with the state of the art on the dataset. Furthermore,
+our results on MicaHandGesture dataset (Table 2) also proves that our proposals can deal well with hand gestures
+recognition. With GRU, we obtained an improvement of 7% in term of accuracy on this dataset. However, the lower
+scores for MicaHandGesture come from the fact that actors only move their hands not their whole bodies, and the
+motion focuses in the limited region of frames.
+4.2. Cross-view Evaluation
+The cross-view evaluation is taken on NUMA dataset with 3 views supported. In this experiment, we want to test
+how our model works when the testing view is unseen. The dataset is divided into three splits. Split 1 takes videos of
+view02 and view03 as training videos, videos of view01 as testing videos and so on. At the training phase, each set
+of 2 videos of 2 diﬀerent training views of the same action is fed into the network for training while at testing phase
+the video of the other view is doubled to feed into 2 diﬀerent branches of the network. Therefore, two branches in this
+case are responsible for extracting the relative information of the training view at that branch and the testing view of
+
+954	
+Anh-Vu Bui  et al. / Procedia Computer Science 176 (2020) 948–955
+the testing video which is diﬀerent with those in the scenario of cross-subject.
+Table 3. The results of cross-view evaluation on NUMA dataset
+Source-Target
+{2,3}-1
+{1,3}-2
+{1,2}-3
+Average Accuracy
+DVV [14]
+39.3%
+55.2%
+58.5%
+51.0%
+nCTE [3]
+52.1%
+68.3%
+68.6%
+63.0%
+MST-AOG [12]
+-
+-
+-
+73.3%
+Kong et al [6]
+-
+-
+-
+77.2%
+TSN [13]
+76.8%
+80.6%
+84.5%
+80.6%
+DA-Net [11]
+83.1%
+82.7%
+86.5%
+84.2%
+Multi-Br TSN
+82.97%
+79.40%
+79.52%
+80.6%
+Multi-Br TSN with GRU
+82.58%
+81.00%
+89.76%
+84.4%
+Table 3 has shown the results of our proposals and previous works. Experimentally, multi-branch with GRU outper-
+forms one without GRU by a large margin (3,8%). On another hand, the multi-branch TSN with GRU is proved to be
+slightly better than the highest of the previous works which is the DA-Net. The results also show that the temporal
+features play an important role in processing video signals. In comparison with the original TSN, the two proposal
+architectures surpass the original TSN by cleverly combining segments and wisely extracting relative information
+between the source views and the target view.
+5. Conclusion
+In this paper, we have proposed a novel architecture based on the TSN model [13]. In detail, our improvement
+includes replacing the classical average pooling consensus by a GRU to aggregate segments of videos and expanding
+basic TSN to a multi-branch network to accept multi-view input. Our experimental results on NUMA and Mica-
+HandGesture datasets in two scenarios cross-view and cross-subject have proved the eﬀectiveness of our proposals.
+Our proposed model provided comparative results even slightly better than other methods in both scenarios.
+Acknowledgements
+This research is funded by the Hanoi University of Science and Technology (HUST) under project number T2017-
+PC-083.
+References
+[1] Cai, Z., Wang, L., Peng, X., Qiao, Y., 2014. Multi-view Super Vector for Action Recognition, in: 2014 IEEE Conference on Computer Vision
+and Pattern Recognition, pp. 596–603. ISSN: 1063-6919.
+[2] Doan, H.G., Tran, T.H., Vu, H., Le, T.L., Nguyen, V.T., Dinh, S.V., Nguyen, T.O., Nguyen, T.T., Nguyen, D.C., 2020. Multi-view Discriminant
+Analysis for Dynamic Hand Gesture Recognition, in: Cree, M., Huang, F., Yuan, J., Yan, W.Q. (Eds.), Pattern Recognition, Springer, Singapore.
+pp. 196–210.
+[3] Gupta, A., Martinez, J., Little, J.J., Woodham, R.J., 2014. 3D Pose from Motion for Cross-View Action Recognition via Non-linear Circulant
+Temporal Encoding, in: 2014 IEEE Conference on Computer Vision and Pattern Recognition, pp. 2601–2608. ISSN: 1063-6919.
+[4] Hao, T., Wu, D., Wang, Q., Sun, J.S., 2017. Multi-view representation learning for multi-view action recognition. Journal of Visual Communi-
+cation and Image Representation 48, 453–460. URL: http://www.sciencedirect.com/science/article/pii/S1047320317300251.
+[5] Herath, S., Harandi, M., Porikli, F., 2017. Going deeper into action recognition: A survey. Image and Vision Computing 60, 4–21.
+[6] Kong, Y., Ding, Z., Li, J., Fu, Y., 2017. Deeply Learned View-Invariant Features for Cross-View Action Recognition. IEEE Transactions on
+Image Processing 26, 3028–3037. Conference Name: IEEE Transactions on Image Processing.
+[7] Le, T.D., Nguyen, T.O., Tran, T.H., 2017. Improving multi-view human action recognition with spatial-temporal pooling and view shifting
+techniques, in: Proceedings of the Eighth International Symposium on Information and Communication Technology, Association for Comput-
+ing Machinery, Nha Trang City, Viet Nam. pp. 348–355.
+[8] Li, R., Zickler, T., 2012. Discriminative virtual views for cross-view action recognition, in: 2012 IEEE Conference on Computer Vision and
+Pattern Recognition, pp. 2855–2862. ISSN: 1063-6919.
+
+	
+Anh-Vu Bui  et al. / Procedia Computer Science 176 (2020) 948–955
+955
+[9] Liu, C., Pei, M., Wu, X., Kong, Y., Jia, Y., 2014. Learning a discriminative mid-level feature for action recognition. Science China Information
+Sciences 57, 1–13.
+[10] Lu, M.H., Nguyen, T.O., 2019. Spatio-temporal Multi-level Fusion for Human Action Recognition, in: Proceedings of the Tenth International
+Symposium on Information and Communication Technology - SoICT 2019, ACM Press, Hanoi, Ha Long Bay, Viet Nam. pp. 298–305.
+[11] Wang, D., Ouyang, W., Li, W., Xu, D., 2018. Dividing and Aggregating Network for Multi-view Action Recognition, in: Ferrari, V., Hebert,
+M., Sminchisescu, C., Weiss, Y. (Eds.), Computer Vision – ECCV 2018, Springer International Publishing, Cham. pp. 457–473.
+[12] Wang, J., Nie, X., Xia, Y., Wu, Y., Zhu, S.C., 2014. Cross-View Action Modeling, Learning, and Recognition, in: 2014 IEEE Conference on
+Computer Vision and Pattern Recognition, pp. 2649–2656. ISSN: 1063-6919.
+[13] Wang, L., Xiong, Y., Wang, Z., Qiao, Y., Lin, D., Tang, X., Van Gool, L., 2016. Temporal Segment Networks: Towards Good Practices for Deep
+Action Recognition, in: Leibe, B., Matas, J., Sebe, N., Welling, M. (Eds.), Computer Vision – ECCV 2016, Springer International Publishing,
+Cham. pp. 20–36.
+[14] Zhang, Z., Wang, C., Xiao, B., Zhou, W., Liu, S., Shi, C., 2013. Cross-View Action Recognition via a Continuous Virtual Path, in: 2013 IEEE
+Conference on Computer Vision and Pattern Recognition, pp. 2690–2697. ISSN: 1063-6919.
