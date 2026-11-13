@@ -26,7 +26,7 @@ The required Python packages are PyTorch, torchvision, NumPy, OpenCV and Pillow.
 - `04_Project_Demo/`: application, requirements and sample clip. A demonstration recording must be added.
 - `05_Summary_Paper/`: `Project_Report.pdf` and `Project_Report.tex` (12 pages), Springer LNCS class and graphics. The earlier six-page summary is also retained.
 - `06_Test_Data/`: NW-UCLA RGB archive. Public source: https://wangjiangb.github.io/my_data.html
-- `07_Base_Papers/`: two labelled base papers and PDFs for the report's cited papers.
+- `07_Research_Papers/`: two labelled base papers and PDFs for the report's cited papers.
 - `08_Poster/`: project poster PDF.
 - `09_Source_Code/`: experiment source and baseline notebook.
 - `10_Results_and_Analysis/`: original recorded metrics, predictions, graphs and logs; the owner-supplied local result is stored separately.
