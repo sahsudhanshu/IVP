@@ -9,7 +9,7 @@ from torchvision.models import inception_v3
 
 HERE=Path(__file__).resolve().parent
 CHECKPOINT=HERE.parent/'12_Trained_Models'/'refit_checkpoint.pt'
-ACTIONS={1:'Pick up with one hand',2:'Pick up with two hands',3:'Drop trash',4:'Walk around',5:'Sit down',6:'Stand up',8:'Donning',9:'Doffing',11:'Throw',12:'Carry'}
+ACTIONS={1:'Pick up with one hand',2:'Pick up with two hands',3:'Drop trash',4:'Walk around',5:'Sit down',6:'Stand up',8:'Put on a jacket',9:'Take off a jacket',11:'Throw',12:'Carry'}
 MEAN=np.array([.485,.456,.406],np.float32); STD=np.array([.229,.224,.225],np.float32)
 class InceptionBN(nn.Module):
     """Shared Inception-v3/BN trunk, returning the final spatial feature map."""
@@ -60,12 +60,46 @@ def predict(model,actions,path):
     idx=int(scores.argmax()); action_id=int(actions[idx])
     return action_id,ACTIONS.get(action_id,f'Action {action_id}'),float(scores[idx])
 
+def annotate_frame(frame, label):
+    """Overlay the clip-level prediction; this is not frame-by-frame detection."""
+    frame=frame.copy()
+    h,w=frame.shape[:2]
+    scale=max(.45, min(w/850, 1.2)); thickness=max(1,round(scale*2))
+    lines=[f'Action: {label}']
+    line_height=max(20,int(32*scale)); top=min(h, line_height+12)
+    overlay=frame.copy(); cv2.rectangle(overlay,(0,0),(w,top),(10,15,25),-1)
+    frame=cv2.addWeighted(overlay,.78,frame,.22,0)
+    for i,line in enumerate(lines):
+        cv2.putText(frame,line,(8, min(h-3, int(24*scale)+i*line_height)),
+                    cv2.FONT_HERSHEY_SIMPLEX,scale,(255,255,255),thickness,cv2.LINE_AA)
+    return frame
+
+def export_video(source, destination, label):
+    """Write an annotated MP4 containing the original video frames, without audio."""
+    if Path(source).resolve()==Path(destination).resolve():
+        raise ValueError('Choose a different file for the output video.')
+    cap=cv2.VideoCapture(str(source)); writer=None
+    try:
+        if not cap.isOpened(): raise ValueError('Could not open the input video.')
+        fps=cap.get(cv2.CAP_PROP_FPS)
+        if not np.isfinite(fps) or fps<=0: raise ValueError('Input video has no valid frame rate.')
+        ok,frame=cap.read()
+        if not ok: raise ValueError('Could not decode the input video.')
+        h,w=frame.shape[:2]
+        writer=cv2.VideoWriter(str(destination),cv2.VideoWriter_fourcc(*'mp4v'),fps,(w,h))
+        if not writer.isOpened(): raise ValueError('Could not create the MP4 output video.')
+        while ok:
+            writer.write(annotate_frame(frame,label)); ok,frame=cap.read()
+    finally:
+        cap.release()
+        if writer is not None: writer.release()
+
 def main():
     parser=argparse.ArgumentParser(); parser.add_argument('--video'); args=parser.parse_args()
     torch.set_num_threads(min(4,torch.get_num_threads()))
     if args.video:
-        model,actions=load_model(); aid,label,score=predict(model,actions,args.video)
-        print(f'Prediction: {label} (a{aid:02d}) | model score: {score:.1%}'); return
+        model,actions=load_model(); _,label,_=predict(model,actions,args.video)
+        print(f'Predicted action: {label}'); return
     import tkinter as tk
     from tkinter import filedialog,ttk
     from PIL import Image,ImageTk
@@ -76,7 +110,7 @@ def main():
     preview=ttk.Label(root,text='Video preview',anchor='center'); preview.pack(pady=12)
     ttk.Label(root,textvariable=chosen,wraplength=820).pack(pady=4)
     row=ttk.Frame(root); row.pack(pady=8)
-    state={'capture':None,'timer':None,'model':None,'actions':None}
+    state={'capture':None,'timer':None,'model':None,'actions':None,'result':None}
     def refresh_preview():
         cap=state['capture']
         if cap is None: return
@@ -84,6 +118,8 @@ def main():
         if not ok:
             cap.set(cv2.CAP_PROP_POS_FRAMES,0); ok,frame=cap.read()
         if not ok: preview.config(text='Preview unavailable',image=''); return
+        if state['result'] is not None:
+            _,label,_=state['result']; frame=annotate_frame(frame,label)
         im=Image.fromarray(cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)); im.thumbnail((540,290))
         photo=ImageTk.PhotoImage(im); preview.configure(image=photo,text=''); preview.image=photo
         fps=cap.get(cv2.CAP_PROP_FPS); delay=int(1000/fps) if fps and 1<=fps<=60 else 80
@@ -95,24 +131,51 @@ def main():
         if not cap.isOpened(): state['capture']=None; preview.config(text='Unable to preview video',image=''); return
         state['capture']=cap; refresh_preview()
     def browse():
-        name=filedialog.askopenfilename(title='Choose a video',filetypes=[('Video files','*.avi *.mp4 *.mov *.mkv'),('All files','*.*')])
-        if name: chosen.set(name); status.set('Video selected. Press Classify.'); open_preview(name)
+        examples=HERE/'example_videos'/'input'
+        name=filedialog.askopenfilename(title='Choose a video',initialdir=str(examples if examples.is_dir() else HERE),filetypes=[('Video files','*.avi *.mp4 *.mov *.mkv'),('All files','*.*')])
+        if name:
+            state['result']=None; save_button.config(state='disabled')
+            chosen.set(name); status.set('Video selected. Press Classify.'); open_preview(name)
     browse_button=ttk.Button(row,text='Choose video',command=browse); browse_button.pack(side='left',padx=6)
     def classify():
+        state['result']=None; save_button.config(state='disabled')
         button.config(state='disabled'); browse_button.config(state='disabled'); status.set('Loading model and analyzing video...')
         selected=chosen.get()
         def worker():
             try:
                 if state['model'] is None: state['model'],state['actions']=load_model()
                 aid,label,score=predict(state['model'],state['actions'],selected)
-                msg=f'Predicted action: {label} (a{aid:02d})\nModel score: {score:.1%}'
-            except Exception as exc: msg=f'Could not classify video: {exc}'
-            try: root.after(0,lambda: (status.set(msg),button.config(state='normal'),browse_button.config(state='normal')))
+                result=(aid,label,score); msg=f'Predicted action: {label}'
+            except Exception as exc: result=None; msg=f'Could not classify video: {exc}'
+            def finished():
+                state['result']=result; status.set(msg); button.config(state='normal'); browse_button.config(state='normal')
+                save_button.config(state='normal' if result is not None else 'disabled')
+            try: root.after(0,finished)
             except RuntimeError: pass
         threading.Thread(target=worker,daemon=True).start()
     button=ttk.Button(row,text='Classify',command=classify); button.pack(side='left',padx=6)
+    def save_output():
+        if state['result'] is None: return
+        destination=filedialog.asksaveasfilename(title='Save annotated video',defaultextension='.mp4',filetypes=[('MP4 video','*.mp4')],initialfile='classified_output.mp4')
+        if not destination: return
+        _,label,_=state['result']; source=chosen.get()
+        button.config(state='disabled'); browse_button.config(state='disabled'); save_button.config(state='disabled')
+        status.set('Saving annotated output video...')
+        def worker():
+            try:
+                export_video(source,destination,label)
+                msg=f'Output saved: {destination}\nVideo contains the clip-level prediction; audio is not included.'
+            except Exception as exc: msg=f'Could not save output video: {exc}'
+            def finished():
+                status.set(msg); button.config(state='normal'); browse_button.config(state='normal'); save_button.config(state='normal')
+            try: root.after(0,finished)
+            except RuntimeError: pass
+        threading.Thread(target=worker,daemon=True).start()
+    save_button=ttk.Button(row,text='Save output video',command=save_output,state='disabled'); save_button.pack(side='left',padx=6)
     ttk.Label(root,textvariable=status,font=('Segoe UI',14,'bold'),wraplength=780,justify='center').pack(pady=12)
-    ttk.Label(root,text='NW-UCLA model • scores are not calibrated probabilities',foreground='#555555').pack(side='bottom',pady=12)
+    ttk.Label(root,text='One predicted action for the whole video',foreground='#555555').pack(side='bottom',pady=(2,8))
+    ttk.Label(root,text='Recognized actions: '+', '.join(ACTIONS.values()),wraplength=820,
+              justify='center',foreground='#555555').pack(side='bottom',pady=(2,4))
     def close():
         if state['timer'] is not None: root.after_cancel(state['timer'])
         if state['capture'] is not None: state['capture'].release()

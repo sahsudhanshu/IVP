@@ -4,8 +4,8 @@
 
 1. Keep `04_Project_Demo/` and `12_Trained_Models/` together within this project folder. The demo requires `12_Trained_Models/refit_checkpoint.pt`.
 2. On this computer double-click `04_Project_Demo/run_demo.bat`. The included sample video opens in a looping preview.
-3. Click **Classify**. The predicted action and model score appear. Use **Choose video** to select another AVI, MP4, MOV or MKV file.
-4. The included sample is NW-UCLA action a01, pick up with one hand. The program reports a softmax model score, not a calibrated probability. Predictions can be incorrect.
+3. Click **Classify**. The predicted action appears on the video. Click **Save output video** to export an annotated MP4 (without audio). Use **Choose video** to select another AVI, MP4, MOV or MKV file.
+4. The included sample is NW-UCLA action a01, pick up with one hand. The program displays one predicted action for the whole clip. Predictions can be incorrect.
 
 ## Installation on another Windows system
 
