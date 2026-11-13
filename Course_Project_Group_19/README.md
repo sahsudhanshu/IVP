@@ -36,7 +36,7 @@ The required Python packages are PyTorch, torchvision, NumPy, OpenCV and Pillow.
 
 ## Recorded evaluation and limitations
 
-The recorded 12-epoch Inception-v3 augmentation experiment achieved 39.47% accuracy (165/418) and 0.3487 macro-F1 on the view-3 cross-view test. The project owner separately supplied a report of 78.47%; its execution provenance and corresponding model checkpoint were not established during packaging. Do not use the Kaggle checkpoint as though it produced the reported local score. DVANet is reviewed in the report; it is not implemented as part of this demo.
+The owner-supplied local augmentation evaluation reports 78.47% accuracy (328/418) on the view-3 test. Its supplied prediction file reproduces that count; execution provenance and the corresponding model checkpoint were not independently established during packaging. A separate recorded 12-epoch Kaggle Inception-v3 experiment achieved 39.47% accuracy (165/418) and 0.3487 macro-F1 on its view-3 cross-view test. Do not use the Kaggle checkpoint as though it produced the reported local score. DVANet is reviewed in the report; it is not implemented as part of this demo.
 
 ## Before submission
 

@@ -11,7 +11,7 @@
 \begin{document}
 \maketitle
 \begin{abstract}
-Recognizing the same human action across camera viewpoints requires a representation that captures motion while limiting dependence on appearance and scene geometry. This paper consolidates two relevant approaches: the multi-branch temporal segment network integrated with a gated recurrent unit proposed by Bui and Nguyen, and DVANet proposed by Siddiqui, Tirupattur and Shah. The former aggregates ordered snippets and combines view-specific features; the latter separates action and view representations using transformer queries and supervised contrastive objectives. We compare their architectures, supervision, inference requirements, published evaluations and practical limitations. We further position a course-project implementation based on Inception-v3 and clip-consistent augmentation within this literature. The recorded project evaluation achieved 39.47\% on 418 target-view groups; a separately supplied local result is distinguished from that recorded run. Published scores are interpreted in the context of their protocols rather than combined into a single ranking. The analysis motivates controlled augmentation studies followed by representation-level view disentanglement.
+Recognizing the same human action across camera viewpoints requires a representation that captures motion while limiting dependence on appearance and scene geometry. This paper consolidates two relevant approaches: the multi-branch temporal segment network integrated with a gated recurrent unit proposed by Bui and Nguyen, and DVANet proposed by Siddiqui, Tirupattur and Shah. The former aggregates ordered snippets and combines view-specific features; the latter separates action and view representations using transformer queries and supervised contrastive objectives. We compare their architectures, supervision, inference requirements, published evaluations and practical limitations. We further position a course-project implementation based on Inception-v3 and clip-consistent augmentation within this literature. The owner-supplied local evaluation reports 78.47\% accuracy on 418 target-view groups; its prediction file reproduces this accuracy, though execution provenance and checkpoint have not been independently established. A separate recorded Kaggle run achieved 39.47\% under its own setup. Published scores are interpreted in the context of their protocols rather than combined into a single ranking. The analysis motivates controlled augmentation studies followed by representation-level view disentanglement.
 \keywords{Multi-view action recognition \and Temporal segment networks \and GRU \and Disentanglement \and Contrastive learning}
 \end{abstract}
 
@@ -88,11 +88,11 @@ Bui and Nguyen report 93.81\% action-level cross-subject accuracy on NUMA/N-UCLA
 DVANet reports 94.4\% cross-subject and 96.5\% cross-view accuracy on N-UCLA in Table 4~\cite{dva}. These numbers should not be subtracted directly from the three-split mean of the earlier paper to claim a controlled improvement: aggregation and protocol definitions must first be aligned. DVANet also evaluates NTU RGB+D, NTU RGB+D 120 and PKU-MMD. On PKU-MMD cross-subject, its full loss configuration reaches 95.8\%; removing both contrastive losses gives 94.2\%, and removing the orthogonality loss gives 95.0\%. These ablations support the usefulness of the training objectives in that setting rather than proving the same gain on every dataset.
 
 \subsection{Project evidence and provenance}
-The saved Kaggle outputs contain a completed 12-epoch development stage followed by a fresh 12-epoch refit. Subject 10 is held out from source-view pairs during development (43 validation samples). The refit uses all 418 complete source pairs and tests the unseen view-3 clip, duplicated into the two branches. The recorded final accuracy is $165/418=39.47\%$, macro-F1 is $0.3487$, and cross-entropy loss is $2.0077$. Predictions reproduce the stored accuracy and macro-F1. Development epoch 12 validation accuracy is 62.79\%; it is measured on a different set and must not be presented as target-view performance.
+The saved Kaggle outputs contain a completed 12-epoch development stage followed by a fresh 12-epoch refit. Subject 10 is held out from source-view pairs during development (43 validation samples). The refit uses all 418 complete source pairs and tests the unseen view-3 clip, duplicated into the two branches. The recorded Kaggle accuracy is $165/418=39.47\%$, macro-F1 is $0.3487$, and cross-entropy loss is $2.0077$. Predictions reproduce the stored accuracy and macro-F1. Development epoch 12 validation accuracy is 62.79\%; it is measured on a different set and must not be presented as target-view performance.
 
 The historical presentation reports 36.6\% accuracy and 0.295 macro-F1 for the comparable target direction. The recorded difference is approximately 2.87 percentage points. This is descriptive evidence only: random training history, frame transformations and other implementation choices differ. A matched baseline across several seeds is necessary to attribute the change to augmentation.
 
-The project owner separately supplies a local result of 78.47\% ($328/418$) and macro-F1 $0.7845$. These files are retained separately in the submission. Their execution provenance has not been independently established during packaging, and their stated historical reference of 69.6\% differs from the presentation's 36.6\%. Accordingly, this review does not use the local figure as verified evidence of a performance gain.
+The project owner supplies a local result of 78.47\% ($328/418$) and macro-F1 $0.7845$. The supplied prediction file reproduces both the accuracy and macro-F1. These files are retained separately in the submission. Their execution provenance has not been independently established during packaging, and their stated historical reference of 69.6\% differs from the presentation's 36.6\%. Accordingly, this review does not use the local figure as verified evidence of a performance gain.
 
 \begin{table}[t]
 \caption{Results with explicit scope; rows are not a controlled ranking.}
@@ -103,8 +103,8 @@ Source and evaluation & Accuracy & Status\\\hline
 TSN--GRU paper, three-split cross-view mean & 84.4\% & Published\\
 DVANet paper, N-UCLA cross-view & 96.5\% & Published\\
 Historical project, target view 3 & 36.6\% & Presentation/log\\
-Augmented project, target view 3 & 39.47\% & Recorded Kaggle run\\
-Separate local run, target view 3 & 78.47\% & Owner supplied\\\hline
+Local augmentation, target view 3 & 78.47\% & Owner supplied\\
+Separate Kaggle run, target view 3 & 39.47\% & Recorded Kaggle run\\\hline
 \end{tabular}
 \end{table}
 
