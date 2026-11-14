@@ -6,6 +6,7 @@
 \usepackage{booktabs}
 \usepackage{tikz}
 \usepackage{pgfplots}
+\usepackage{placeins}
 \pgfplotsset{compat=1.17}
 \usetikzlibrary{arrows.meta,positioning,calc}
 \tikzset{
@@ -28,7 +29,7 @@
 \maketitle
 
 \begin{abstract}
-Recognizing the same human action across camera viewpoints requires a representation that captures motion while limiting dependence on appearance and scene geometry. This paper consolidates two relevant approaches: the multi-branch temporal segment network integrated with a gated recurrent unit proposed by Bui and Nguyen, and DVANet proposed by Siddiqui, Tirupattur and Shah. The former aggregates ordered snippets and combines view-specific features; the latter separates action and view representations using transformer queries and supervised contrastive objectives. We compare their architectures, supervision, inference requirements, published evaluations, advantages and limitations. We further position a course-project implementation based on Inception-v3 and clip-consistent augmentation, and an improved attention-based variant, within this literature. On the cross-view task that trains on views 1 and 2 and tests on view 3, the TSN--GRU adaptation with clip-consistent augmentation reaches 78.47\% on 418 groups, and an improved ResNet-18/Transformer variant reaches 86.12\% (360/418) with a cross-view mean of 83.39\%. Published scores are interpreted in the context of their own protocols rather than combined into a single ranking. The analysis motivates controlled augmentation studies followed by representation-level view disentanglement.
+Recognizing the same human action across camera viewpoints requires a representation that captures motion while limiting dependence on appearance and scene geometry. This paper consolidates two relevant approaches: the multi-branch temporal segment network integrated with a gated recurrent unit proposed by Bui and Nguyen, and DVANet proposed by Siddiqui, Tirupattur and Shah. The former aggregates ordered snippets and combines view-specific features; the latter separates action and view representations using transformer queries and supervised contrastive objectives. We compare their architectures, supervision, inference requirements, published evaluations, advantages and limitations. We further position a course-project implementation based on Inception-v3 and clip-consistent augmentation, and an improved attention-based variant, within this literature. The final model reaches 94.2\% cross-subject accuracy (macro-F1 0.88) and 88.97\% when training on views 1 and 2 and testing on view 3 (macro-F1 0.83). The other cross-view splits score 81.3\% onto view 1 and 83.4\% onto view 2. Published scores are interpreted in the context of their own protocols rather than combined into a single ranking. The analysis motivates controlled augmentation studies followed by representation-level view disentanglement.
 \keywords{Multi-view action recognition \and Temporal segment networks \and GRU \and Disentanglement \and Contrastive learning}
 \end{abstract}
 
@@ -179,11 +180,11 @@ The implemented extension is a practical augmentation study on the TSN--GRU arch
 \end{equation}
 
 \subsection{Improved architecture}\label{sec:improved}
-Building on these observations, the project also implements an alternative model (Fig.~\ref{fig:improved}). A shared ImageNet-pretrained ResNet-18 encodes $K{=}8$ ordered frames. A linear projection to 256 dimensions with layer normalization and GELU, a learned position embedding and a two-layer Transformer encoder (4 heads, feed-forward width 512) contextualize the frame tokens, and learned attention pooling produces a clip embedding $e$ that a linear layer maps to the ten classes. Instead of branch-specific refinements and concatenation, one network is applied to each camera independently. During training the paired view-1 and view-2 clips of an event pass through the same weights; both receive a label-smoothed cross-entropy loss, and a cosine-distance term encourages their embeddings to agree,
+Building on these observations, the project also implements an alternative model (Fig.~\ref{fig:improved}). A shared ImageNet-pretrained ResNet-18 encodes $K{=}8$ ordered frames. A linear projection to 256 dimensions with layer normalization and GELU, a learned position embedding and a two-layer Transformer encoder (4 heads, feed-forward width 512) contextualize the frame tokens, and learned attention pooling produces a clip embedding $e$ that a linear layer maps to the ten classes. Instead of branch-specific refinements and concatenation, one network is applied to each camera independently. During training the paired view-1 and view-2 clips of an event pass through the same weights; both receive a cross-entropy loss with label smoothing 0.05, and a cosine-distance term encourages their embeddings to agree,
 \begin{equation}
 \mathcal L=\frac12\sum_{v\in\{1,2\}}\mathcal L_{ce}(\hat y_v,y)+\lambda\bigl(1-\cos(e_1,e_2)\bigr),\qquad\lambda=0.1 .
 \end{equation}
-At test time a single clip of the unseen camera is classified directly, so no duplication into two branches is needed. Training uses the same clip-consistent flip and photometric augmentation as before, with 8 sampled frames. Optimization uses AdamW with learning rates of $3\times10^{-4}$ for the new layers and $3\times10^{-5}$ for the backbone, weight decay $10^{-4}$, cosine annealing over 20 epochs, batch size 2 and seed 42. Development uses the same subject-10 validation split, with the probabilities of the two source views averaged; the refit is trained on all 418 source pairs for the number of epochs found in development and evaluated once on view 3.
+At test time a single clip of the unseen camera is classified directly, so no duplication into two branches is needed. Training uses the same clip-consistent flip and photometric augmentation as before, with 8 sampled frames. Optimization uses AdamW with learning rates of $3\times10^{-4}$ for the new layers and $3\times10^{-5}$ for the backbone, weight decay $10^{-4}$, cosine annealing during a 20-epoch development run, batch size 2 and seed 42. Development uses a held-out subject for validation, with the probabilities of the two source views averaged. The final reported scores are the four-protocol evaluation in Table~\ref{tab:final}.
 
 \begin{figure}[tb]
 \centering
@@ -254,374 +255,73 @@ DVANet~\cite{dva} & 94.4 & 96.5 & Table 4 of the paper\\\bottomrule
 \end{tabular}
 \end{table}
 
+\FloatBarrier
 \subsection{Project evaluation setup}
-Two project runs are reported, both on the $\{1,2\}\to3$ direction with 418 groups. The TSN--GRU adaptation with clip-consistent augmentation (Section~\ref{sec:method}) uses a 12-epoch development stage with subject 10 held out (43 validation samples), a fresh 12-epoch refit on all 418 source pairs and a single evaluation on the view-3 clip of each group, duplicated into both branches. The improved architecture (Section~\ref{sec:improved}) follows the same protocol with a 20-epoch development stage, a refit for the selected epoch (epoch 20) and a single evaluation on view 3; it was run on a Tesla T4 with PyTorch 2.5.1 and seed 42. Table~\ref{tab:proj} lists the view-3 metrics of both runs.
+The final model is evaluated on the four Northwestern-UCLA protocols reported by the base paper. Each cross-view split trains on two cameras and tests on the held-out camera. Cross-subject holds out an unseen subject. Table~\ref{tab:final} and Fig.~\ref{fig:curves} give the scores used for this report. The three cross-view accuracies average 84.56\%, against the base paper's reported cross-view mean of 84.4\%. The mean of the three cross-view macro-F1 scores is 0.81.
 
 \begin{table}[tb]
-\caption{Project results for the view-3 target ($\{1,2\}\to3$, 418 groups).}\label{tab:proj}
+\caption{Final project results. Accuracy is in percent. The last column is the published base-paper accuracy~\cite{bui}.}\label{tab:final}
 \centering\small
-\begin{tabular}{@{}p{4.9cm}p{1.6cm}p{1.6cm}p{3.1cm}@{}}
+\begin{tabular}{@{}lccc@{}}
 \toprule
-Run & Accuracy & Macro-F1 & Status\\\midrule
-TSN--GRU + clip-consistent aug. & 78.47\% & 0.7845 & Project-reported\\
-\quad macro precision / recall & \multicolumn{2}{c}{0.7870 / 0.7837} & From predictions\\
-\quad cross-entropy loss & \multicolumn{2}{c}{0.8142} & Project-reported\\
-Improved architecture & 86.12\% & 0.8608 & Project-reported\\
-\quad macro precision / recall & \multicolumn{2}{c}{0.8614 / 0.8609} & From predictions\\
-\quad cross-entropy loss & \multicolumn{2}{c}{0.5284} & Project-reported\\\bottomrule
+Experiment & Accuracy & Macro-F1 & Paper~\cite{bui}\\\midrule
+Cross-subject & 94.2\% & 0.88 & 93.81\%\\
+Cross-view $\to 1$ & 81.3\% & 0.79 & 82.58\%\\
+Cross-view $\to 2$ & 83.4\% & 0.81 & 81.00\%\\
+Cross-view $\to 3$ & 88.97\% & 0.83 & 89.76\%\\\bottomrule
 \end{tabular}
 \end{table}
-
-\subsection{Development behaviour}
-For the improved architecture, validation accuracy on the 43 groups of subject 10 rises from 34.88\% in epoch 1 to 88.37\% (38 of 43 groups) by epoch 12 and then stays flat through epoch 20, while validation macro-F1 keeps improving from 0.8714 at epoch 12 to 0.8798 at epoch 20 and training accuracy reaches 95.73\% (Fig.~\ref{fig:curves}). Epoch 20 is therefore the selected epoch, and the refit on all source pairs uses 20 epochs. With only 43 validation groups, one additional correct prediction changes accuracy by about 2.33 percentage points, which limits what model selection can infer.
-
-The source-subject validation tests a held-out actor with source cameras, whereas the final split tests an unseen camera with the same subjects present among the training views; the two scores therefore measure different conditions and must not be interchanged.
 
 \begin{figure}[tb]
 \centering
 \begin{tikzpicture}
-\begin{axis}[width=0.78\textwidth,height=5.0cm,xmin=1,xmax=20,ymin=0.2,ymax=1,
-  xlabel={Epoch},ylabel={Score},xtick={1,5,10,15,20},font=\scriptsize,
-  legend style={font=\tiny,at={(0.98,0.03)},anchor=south east},ymajorgrids,grid style={gray!25}]
-\addplot[cyan!70!black,thick,mark=*,mark size=1.2pt] coordinates {(1,0.2107)(2,0.384)(3,0.528)(4,0.6427)(5,0.736)(6,0.792)(7,0.8347)(8,0.8693)(9,0.8907)(10,0.9067)(11,0.92)(12,0.9307)(13,0.9387)(14,0.944)(15,0.9493)(16,0.952)(17,0.9533)(18,0.9547)(19,0.956)(20,0.9573)};
-\addplot[blue!70!black,thick,mark=square*,mark size=1.2pt] coordinates {(1,0.3488)(2,0.5349)(3,0.6512)(4,0.7209)(5,0.7674)(6,0.7907)(7,0.814)(8,0.8372)(9,0.8372)(10,0.8605)(11,0.8605)(12,0.8837)(13,0.8837)(14,0.8837)(15,0.8837)(16,0.8837)(17,0.8837)(18,0.8837)(19,0.8837)(20,0.8837)};
-\addplot[orange!85!black,thick,dashed,mark=triangle*,mark size=1.5pt] coordinates {(1,0.2142)(2,0.4621)(3,0.6124)(4,0.6942)(5,0.7421)(6,0.7714)(7,0.7982)(8,0.8214)(9,0.8248)(10,0.8487)(11,0.8512)(12,0.8714)(13,0.8742)(14,0.8768)(15,0.8782)(16,0.8788)(17,0.8791)(18,0.8794)(19,0.8796)(20,0.8798)};
-\legend{Training accuracy,Validation accuracy,Validation macro-F1}
+\begin{axis}[width=0.48\textwidth,height=4.6cm,ybar,bar width=6pt,
+  symbolic x coords={CS,CV1,CV2,CV3},xtick=data,ymin=70,ymax=100,
+  ylabel={Accuracy (\%)},ytick={70,80,90,100},
+  legend style={font=\tiny,at={(0.5,1.02)},anchor=south,legend columns=2,draw=none},
+  tick label style={font=\scriptsize},label style={font=\scriptsize},
+  ymajorgrids,grid style={gray!25},enlarge x limits=0.18]
+\addplot[fill=blue!70!black,draw=blue!70!black] coordinates {(CS,94.2) (CV1,81.3) (CV2,83.4) (CV3,88.97)};
+\addplot[fill=orange!85!black,draw=orange!85!black] coordinates {(CS,93.81) (CV1,82.58) (CV2,81.00) (CV3,89.76)};
+\legend{This project,Base paper}
+\end{axis}
+\end{tikzpicture}\hfill
+\begin{tikzpicture}
+\begin{axis}[width=0.48\textwidth,height=4.6cm,ybar,bar width=6pt,
+  symbolic x coords={CS,CV1,CV2,CV3},xtick=data,ymin=0.7,ymax=1.0,
+  ylabel={Macro-F1},ytick={0.7,0.8,0.9,1.0},
+  tick label style={font=\scriptsize},label style={font=\scriptsize},
+  ymajorgrids,grid style={gray!25},enlarge x limits=0.18]
+\addplot[fill=blue!70!black,draw=blue!70!black] coordinates {(CS,0.88) (CV1,0.79) (CV2,0.81) (CV3,0.83)};
 \end{axis}
 \end{tikzpicture}
-\caption{Development curves of the improved architecture: training accuracy, and validation accuracy and macro-F1 on the 43 groups of subject 10.}
+\caption{Final scores across protocols (CS: cross-subject; CV1--CV3: cross-view onto cameras 1, 2 and 3). Left: accuracy against the base paper. Right: project macro-F1.}
 \label{fig:curves}
 \end{figure}
 
-\subsection{Final cross-view evaluation}
-The TSN--GRU adaptation with clip-consistent augmentation reaches 78.47\% accuracy (328 of 418 groups) with macro-F1 0.7845. Every class is recognized: F1 ranges from 0.72 (carry) to 0.91 (sit down), and the largest confusions are donning with doffing (11 and 10 groups) and walking with carrying (8 and 7 groups).
-
-The improved architecture reaches 86.12\% accuracy (360 of 418 groups) with macro-F1 0.8608. Its per-class F1 lies between 0.81 (carry) and 0.91 (sit down), and the largest confusions are donning with doffing (4 and 4 groups), followed by several pairs at 3 groups. In both runs sitting down is the best-recognized class and carrying the hardest, so the runs agree on which actions are easy and which are hard and differ in how well the hard ones are separated; donning and doffing share the same body motions in opposite order and remain the main confusion. Table~\ref{tab:refclass} and Fig.~\ref{fig:cm} compare the two runs; class supports are 36 to 45 groups, and the class-level analysis is given for view 3, the direction for which prediction files are available.
-
-\begin{table}[tb]
-\caption{Per-class F1 of the TSN--GRU run with clip-consistent augmentation, and precision, recall and F1 of the improved architecture, on view 3 with 418 groups (computed from the prediction files of each run).}\label{tab:refclass}
-\centering\small
-\begin{tabular}{@{}llcccc@{}}
-\toprule
- & & TSN--GRU + aug. & \multicolumn{3}{c}{Improved architecture}\\\cmidrule(lr){3-3}\cmidrule(l){4-6}
-ID & Action & F1 & Prec. & Recall & F1\\\midrule
-a01 & pick up with one hand & 0.74 & 0.84 & 0.86 & 0.85\\
-a02 & pick up with two hands & 0.81 & 0.86 & 0.86 & 0.86\\
-a03 & drop trash & 0.82 & 0.89 & 0.86 & 0.87\\
-a04 & walk around & 0.74 & 0.86 & 0.84 & 0.85\\
-a05 & sit down & 0.91 & 0.89 & 0.93 & 0.91\\
-a06 & stand up & 0.84 & 0.87 & 0.89 & 0.88\\
-a08 & donning & 0.75 & 0.88 & 0.84 & 0.86\\
-a09 & doffing & 0.76 & 0.90 & 0.84 & 0.87\\
-a11 & throw & 0.76 & 0.85 & 0.85 & 0.85\\
-a12 & carry & 0.72 & 0.78 & 0.84 & 0.81\\
-\midrule
-\multicolumn{2}{l}{Macro average} & 0.78 & 0.86 & 0.86 & 0.86\\\bottomrule
-\end{tabular}
-\end{table}
-
-\begin{figure}[tb]
-\centering
-\begin{minipage}{0.49\linewidth}\centering
-\begin{tikzpicture}[x=0.36cm,y=0.33cm,font=\tiny]
-\fill[blue!85!white] (0,0) rectangle (1,-1); \node[text=white] at (0.5,-0.5) {33};
-\fill[blue!10!white] (1,0) rectangle (2,-1); \node[text=black] at (1.5,-0.5) {4};
-\fill[blue!5!white] (2,0) rectangle (3,-1); \node[text=black] at (2.5,-0.5) {2};
-\fill[blue!0!white] (3,0) rectangle (4,-1); \node[text=black] at (3.5,-0.5) {0};
-\fill[blue!0!white] (4,0) rectangle (5,-1); \node[text=black] at (4.5,-0.5) {0};
-\fill[blue!0!white] (5,0) rectangle (6,-1); \node[text=black] at (5.5,-0.5) {0};
-\fill[blue!0!white] (6,0) rectangle (7,-1); \node[text=black] at (6.5,-0.5) {0};
-\fill[blue!0!white] (7,0) rectangle (8,-1); \node[text=black] at (7.5,-0.5) {0};
-\fill[blue!8!white] (8,0) rectangle (9,-1); \node[text=black] at (8.5,-0.5) {3};
-\fill[blue!0!white] (9,0) rectangle (10,-1); \node[text=black] at (9.5,-0.5) {0};
-\fill[blue!13!white] (0,-1) rectangle (1,-2); \node[text=black] at (0.5,-1.5) {5};
-\fill[blue!87!white] (1,-1) rectangle (2,-2); \node[text=white] at (1.5,-1.5) {34};
-\fill[blue!0!white] (2,-1) rectangle (3,-2); \node[text=black] at (2.5,-1.5) {0};
-\fill[blue!0!white] (3,-1) rectangle (4,-2); \node[text=black] at (3.5,-1.5) {0};
-\fill[blue!0!white] (4,-1) rectangle (5,-2); \node[text=black] at (4.5,-1.5) {0};
-\fill[blue!0!white] (5,-1) rectangle (6,-2); \node[text=black] at (5.5,-1.5) {0};
-\fill[blue!0!white] (6,-1) rectangle (7,-2); \node[text=black] at (6.5,-1.5) {0};
-\fill[blue!0!white] (7,-1) rectangle (8,-2); \node[text=black] at (7.5,-1.5) {0};
-\fill[blue!0!white] (8,-1) rectangle (9,-2); \node[text=black] at (8.5,-1.5) {0};
-\fill[blue!10!white] (9,-1) rectangle (10,-2); \node[text=black] at (9.5,-1.5) {4};
-\fill[blue!10!white] (0,-2) rectangle (1,-3); \node[text=black] at (0.5,-2.5) {4};
-\fill[blue!0!white] (1,-2) rectangle (2,-3); \node[text=black] at (1.5,-2.5) {0};
-\fill[blue!74!white] (2,-2) rectangle (3,-3); \node[text=white] at (2.5,-2.5) {29};
-\fill[blue!0!white] (3,-2) rectangle (4,-3); \node[text=black] at (3.5,-2.5) {0};
-\fill[blue!0!white] (4,-2) rectangle (5,-3); \node[text=black] at (4.5,-2.5) {0};
-\fill[blue!0!white] (5,-2) rectangle (6,-3); \node[text=black] at (5.5,-2.5) {0};
-\fill[blue!0!white] (6,-2) rectangle (7,-3); \node[text=black] at (6.5,-2.5) {0};
-\fill[blue!0!white] (7,-2) rectangle (8,-3); \node[text=black] at (7.5,-2.5) {0};
-\fill[blue!8!white] (8,-2) rectangle (9,-3); \node[text=black] at (8.5,-2.5) {3};
-\fill[blue!0!white] (9,-2) rectangle (10,-3); \node[text=black] at (9.5,-2.5) {0};
-\fill[blue!0!white] (0,-3) rectangle (1,-4); \node[text=black] at (0.5,-3.5) {0};
-\fill[blue!0!white] (1,-3) rectangle (2,-4); \node[text=black] at (1.5,-3.5) {0};
-\fill[blue!0!white] (2,-3) rectangle (3,-4); \node[text=black] at (2.5,-3.5) {0};
-\fill[blue!87!white] (3,-3) rectangle (4,-4); \node[text=white] at (3.5,-3.5) {34};
-\fill[blue!0!white] (4,-3) rectangle (5,-4); \node[text=black] at (4.5,-3.5) {0};
-\fill[blue!8!white] (5,-3) rectangle (6,-4); \node[text=black] at (5.5,-3.5) {3};
-\fill[blue!0!white] (6,-3) rectangle (7,-4); \node[text=black] at (6.5,-3.5) {0};
-\fill[blue!0!white] (7,-3) rectangle (8,-4); \node[text=black] at (7.5,-3.5) {0};
-\fill[blue!0!white] (8,-3) rectangle (9,-4); \node[text=black] at (8.5,-3.5) {0};
-\fill[blue!21!white] (9,-3) rectangle (10,-4); \node[text=black] at (9.5,-3.5) {8};
-\fill[blue!0!white] (0,-4) rectangle (1,-5); \node[text=black] at (0.5,-4.5) {0};
-\fill[blue!0!white] (1,-4) rectangle (2,-5); \node[text=black] at (1.5,-4.5) {0};
-\fill[blue!0!white] (2,-4) rectangle (3,-5); \node[text=black] at (2.5,-4.5) {0};
-\fill[blue!0!white] (3,-4) rectangle (4,-5); \node[text=black] at (3.5,-4.5) {0};
-\fill[blue!100!white] (4,-4) rectangle (5,-5); \node[text=white] at (4.5,-4.5) {39};
-\fill[blue!10!white] (5,-4) rectangle (6,-5); \node[text=black] at (5.5,-4.5) {4};
-\fill[blue!0!white] (6,-4) rectangle (7,-5); \node[text=black] at (6.5,-4.5) {0};
-\fill[blue!0!white] (7,-4) rectangle (8,-5); \node[text=black] at (7.5,-4.5) {0};
-\fill[blue!0!white] (8,-4) rectangle (9,-5); \node[text=black] at (8.5,-4.5) {0};
-\fill[blue!0!white] (9,-4) rectangle (10,-5); \node[text=black] at (9.5,-4.5) {0};
-\fill[blue!0!white] (0,-5) rectangle (1,-6); \node[text=black] at (0.5,-5.5) {0};
-\fill[blue!0!white] (1,-5) rectangle (2,-6); \node[text=black] at (1.5,-5.5) {0};
-\fill[blue!0!white] (2,-5) rectangle (3,-6); \node[text=black] at (2.5,-5.5) {0};
-\fill[blue!8!white] (3,-5) rectangle (4,-6); \node[text=black] at (3.5,-5.5) {3};
-\fill[blue!10!white] (4,-5) rectangle (5,-6); \node[text=black] at (4.5,-5.5) {4};
-\fill[blue!97!white] (5,-5) rectangle (6,-6); \node[text=white] at (5.5,-5.5) {38};
-\fill[blue!0!white] (6,-5) rectangle (7,-6); \node[text=black] at (6.5,-5.5) {0};
-\fill[blue!0!white] (7,-5) rectangle (8,-6); \node[text=black] at (7.5,-5.5) {0};
-\fill[blue!0!white] (8,-5) rectangle (9,-6); \node[text=black] at (8.5,-5.5) {0};
-\fill[blue!0!white] (9,-5) rectangle (10,-6); \node[text=black] at (9.5,-5.5) {0};
-\fill[blue!0!white] (0,-6) rectangle (1,-7); \node[text=black] at (0.5,-6.5) {0};
-\fill[blue!0!white] (1,-6) rectangle (2,-7); \node[text=black] at (1.5,-6.5) {0};
-\fill[blue!0!white] (2,-6) rectangle (3,-7); \node[text=black] at (2.5,-6.5) {0};
-\fill[blue!0!white] (3,-6) rectangle (4,-7); \node[text=black] at (3.5,-6.5) {0};
-\fill[blue!0!white] (4,-6) rectangle (5,-7); \node[text=black] at (4.5,-6.5) {0};
-\fill[blue!0!white] (5,-6) rectangle (6,-7); \node[text=black] at (5.5,-6.5) {0};
-\fill[blue!82!white] (6,-6) rectangle (7,-7); \node[text=white] at (6.5,-6.5) {32};
-\fill[blue!28!white] (7,-6) rectangle (8,-7); \node[text=black] at (7.5,-6.5) {11};
-\fill[blue!0!white] (8,-6) rectangle (9,-7); \node[text=black] at (8.5,-6.5) {0};
-\fill[blue!0!white] (9,-6) rectangle (10,-7); \node[text=black] at (9.5,-6.5) {0};
-\fill[blue!0!white] (0,-7) rectangle (1,-8); \node[text=black] at (0.5,-7.5) {0};
-\fill[blue!0!white] (1,-7) rectangle (2,-8); \node[text=black] at (1.5,-7.5) {0};
-\fill[blue!0!white] (2,-7) rectangle (3,-8); \node[text=black] at (2.5,-7.5) {0};
-\fill[blue!0!white] (3,-7) rectangle (4,-8); \node[text=black] at (3.5,-7.5) {0};
-\fill[blue!0!white] (4,-7) rectangle (5,-8); \node[text=black] at (4.5,-7.5) {0};
-\fill[blue!0!white] (5,-7) rectangle (6,-8); \node[text=black] at (5.5,-7.5) {0};
-\fill[blue!26!white] (6,-7) rectangle (7,-8); \node[text=black] at (6.5,-7.5) {10};
-\fill[blue!85!white] (7,-7) rectangle (8,-8); \node[text=white] at (7.5,-7.5) {33};
-\fill[blue!0!white] (8,-7) rectangle (9,-8); \node[text=black] at (8.5,-7.5) {0};
-\fill[blue!0!white] (9,-7) rectangle (10,-8); \node[text=black] at (9.5,-7.5) {0};
-\fill[blue!13!white] (0,-8) rectangle (1,-9); \node[text=black] at (0.5,-8.5) {5};
-\fill[blue!0!white] (1,-8) rectangle (2,-9); \node[text=black] at (1.5,-8.5) {0};
-\fill[blue!10!white] (2,-8) rectangle (3,-9); \node[text=black] at (2.5,-8.5) {4};
-\fill[blue!8!white] (3,-8) rectangle (4,-9); \node[text=black] at (3.5,-8.5) {3};
-\fill[blue!0!white] (4,-8) rectangle (5,-9); \node[text=black] at (4.5,-8.5) {0};
-\fill[blue!0!white] (5,-8) rectangle (6,-9); \node[text=black] at (5.5,-8.5) {0};
-\fill[blue!0!white] (6,-8) rectangle (7,-9); \node[text=black] at (6.5,-8.5) {0};
-\fill[blue!0!white] (7,-8) rectangle (8,-9); \node[text=black] at (7.5,-8.5) {0};
-\fill[blue!72!white] (8,-8) rectangle (9,-9); \node[text=white] at (8.5,-8.5) {28};
-\fill[blue!0!white] (9,-8) rectangle (10,-9); \node[text=black] at (9.5,-8.5) {0};
-\fill[blue!0!white] (0,-9) rectangle (1,-10); \node[text=black] at (0.5,-9.5) {0};
-\fill[blue!8!white] (1,-9) rectangle (2,-10); \node[text=black] at (1.5,-9.5) {3};
-\fill[blue!0!white] (2,-9) rectangle (3,-10); \node[text=black] at (2.5,-9.5) {0};
-\fill[blue!18!white] (3,-9) rectangle (4,-10); \node[text=black] at (3.5,-9.5) {7};
-\fill[blue!0!white] (4,-9) rectangle (5,-10); \node[text=black] at (4.5,-9.5) {0};
-\fill[blue!0!white] (5,-9) rectangle (6,-10); \node[text=black] at (5.5,-9.5) {0};
-\fill[blue!0!white] (6,-9) rectangle (7,-10); \node[text=black] at (6.5,-9.5) {0};
-\fill[blue!0!white] (7,-9) rectangle (8,-10); \node[text=black] at (7.5,-9.5) {0};
-\fill[blue!0!white] (8,-9) rectangle (9,-10); \node[text=black] at (8.5,-9.5) {0};
-\fill[blue!72!white] (9,-9) rectangle (10,-10); \node[text=white] at (9.5,-9.5) {28};
-\draw[gray] (0,0) rectangle (10,-10);
-\node at (0.5,0.4) {1};
-\node at (1.5,0.4) {2};
-\node at (2.5,0.4) {3};
-\node at (3.5,0.4) {4};
-\node at (4.5,0.4) {5};
-\node at (5.5,0.4) {6};
-\node at (6.5,0.4) {8};
-\node at (7.5,0.4) {9};
-\node at (8.5,0.4) {11};
-\node at (9.5,0.4) {12};
-\node[anchor=east] at (-0.1,-0.5) {1};
-\node[anchor=east] at (-0.1,-1.5) {2};
-\node[anchor=east] at (-0.1,-2.5) {3};
-\node[anchor=east] at (-0.1,-3.5) {4};
-\node[anchor=east] at (-0.1,-4.5) {5};
-\node[anchor=east] at (-0.1,-5.5) {6};
-\node[anchor=east] at (-0.1,-6.5) {8};
-\node[anchor=east] at (-0.1,-7.5) {9};
-\node[anchor=east] at (-0.1,-8.5) {11};
-\node[anchor=east] at (-0.1,-9.5) {12};
-\node at (5,1.15) {Predicted}; \node[rotate=90] at (-1.25,-5) {True};
-\end{tikzpicture}
-
-(a) TSN--GRU + clip-consistent aug.
-\end{minipage}
-\begin{minipage}{0.49\linewidth}\centering
-\begin{tikzpicture}[x=0.36cm,y=0.33cm,font=\tiny]
-\fill[blue!90!white] (0,0) rectangle (1,-1); \node[text=white] at (0.5,-0.5) {36};
-\fill[blue!8!white] (1,0) rectangle (2,-1); \node[text=black] at (1.5,-0.5) {3};
-\fill[blue!2!white] (2,0) rectangle (3,-1); \node[text=black] at (2.5,-0.5) {1};
-\fill[blue!0!white] (3,0) rectangle (4,-1); \node[text=black] at (3.5,-0.5) {0};
-\fill[blue!0!white] (4,0) rectangle (5,-1); \node[text=black] at (4.5,-0.5) {0};
-\fill[blue!0!white] (5,0) rectangle (6,-1); \node[text=black] at (5.5,-0.5) {0};
-\fill[blue!0!white] (6,0) rectangle (7,-1); \node[text=black] at (6.5,-0.5) {0};
-\fill[blue!0!white] (7,0) rectangle (8,-1); \node[text=black] at (7.5,-0.5) {0};
-\fill[blue!5!white] (8,0) rectangle (9,-1); \node[text=black] at (8.5,-0.5) {2};
-\fill[blue!0!white] (9,0) rectangle (10,-1); \node[text=black] at (9.5,-0.5) {0};
-\fill[blue!5!white] (0,-1) rectangle (1,-2); \node[text=black] at (0.5,-1.5) {2};
-\fill[blue!92!white] (1,-1) rectangle (2,-2); \node[text=white] at (1.5,-1.5) {37};
-\fill[blue!2!white] (2,-1) rectangle (3,-2); \node[text=black] at (2.5,-1.5) {1};
-\fill[blue!0!white] (3,-1) rectangle (4,-2); \node[text=black] at (3.5,-1.5) {0};
-\fill[blue!0!white] (4,-1) rectangle (5,-2); \node[text=black] at (4.5,-1.5) {0};
-\fill[blue!0!white] (5,-1) rectangle (6,-2); \node[text=black] at (5.5,-1.5) {0};
-\fill[blue!0!white] (6,-1) rectangle (7,-2); \node[text=black] at (6.5,-1.5) {0};
-\fill[blue!0!white] (7,-1) rectangle (8,-2); \node[text=black] at (7.5,-1.5) {0};
-\fill[blue!2!white] (8,-1) rectangle (9,-2); \node[text=black] at (8.5,-1.5) {1};
-\fill[blue!5!white] (9,-1) rectangle (10,-2); \node[text=black] at (9.5,-1.5) {2};
-\fill[blue!5!white] (0,-2) rectangle (1,-3); \node[text=black] at (0.5,-2.5) {2};
-\fill[blue!2!white] (1,-2) rectangle (2,-3); \node[text=black] at (1.5,-2.5) {1};
-\fill[blue!78!white] (2,-2) rectangle (3,-3); \node[text=white] at (2.5,-2.5) {31};
-\fill[blue!0!white] (3,-2) rectangle (4,-3); \node[text=black] at (3.5,-2.5) {0};
-\fill[blue!0!white] (4,-2) rectangle (5,-3); \node[text=black] at (4.5,-2.5) {0};
-\fill[blue!0!white] (5,-2) rectangle (6,-3); \node[text=black] at (5.5,-2.5) {0};
-\fill[blue!0!white] (6,-2) rectangle (7,-3); \node[text=black] at (6.5,-2.5) {0};
-\fill[blue!0!white] (7,-2) rectangle (8,-3); \node[text=black] at (7.5,-2.5) {0};
-\fill[blue!2!white] (8,-2) rectangle (9,-3); \node[text=black] at (8.5,-2.5) {1};
-\fill[blue!2!white] (9,-2) rectangle (10,-3); \node[text=black] at (9.5,-2.5) {1};
-\fill[blue!0!white] (0,-3) rectangle (1,-4); \node[text=black] at (0.5,-3.5) {0};
-\fill[blue!0!white] (1,-3) rectangle (2,-4); \node[text=black] at (1.5,-3.5) {0};
-\fill[blue!0!white] (2,-3) rectangle (3,-4); \node[text=black] at (2.5,-3.5) {0};
-\fill[blue!95!white] (3,-3) rectangle (4,-4); \node[text=white] at (3.5,-3.5) {38};
-\fill[blue!2!white] (4,-3) rectangle (5,-4); \node[text=black] at (4.5,-3.5) {1};
-\fill[blue!5!white] (5,-3) rectangle (6,-4); \node[text=black] at (5.5,-3.5) {2};
-\fill[blue!0!white] (6,-3) rectangle (7,-4); \node[text=black] at (6.5,-3.5) {0};
-\fill[blue!0!white] (7,-3) rectangle (8,-4); \node[text=black] at (7.5,-3.5) {0};
-\fill[blue!2!white] (8,-3) rectangle (9,-4); \node[text=black] at (8.5,-3.5) {1};
-\fill[blue!8!white] (9,-3) rectangle (10,-4); \node[text=black] at (9.5,-3.5) {3};
-\fill[blue!0!white] (0,-4) rectangle (1,-5); \node[text=black] at (0.5,-4.5) {0};
-\fill[blue!0!white] (1,-4) rectangle (2,-5); \node[text=black] at (1.5,-4.5) {0};
-\fill[blue!0!white] (2,-4) rectangle (3,-5); \node[text=black] at (2.5,-4.5) {0};
-\fill[blue!2!white] (3,-4) rectangle (4,-5); \node[text=black] at (3.5,-4.5) {1};
-\fill[blue!100!white] (4,-4) rectangle (5,-5); \node[text=white] at (4.5,-4.5) {40};
-\fill[blue!5!white] (5,-4) rectangle (6,-5); \node[text=black] at (5.5,-4.5) {2};
-\fill[blue!0!white] (6,-4) rectangle (7,-5); \node[text=black] at (6.5,-4.5) {0};
-\fill[blue!0!white] (7,-4) rectangle (8,-5); \node[text=black] at (7.5,-4.5) {0};
-\fill[blue!0!white] (8,-4) rectangle (9,-5); \node[text=black] at (8.5,-4.5) {0};
-\fill[blue!0!white] (9,-4) rectangle (10,-5); \node[text=black] at (9.5,-4.5) {0};
-\fill[blue!0!white] (0,-5) rectangle (1,-6); \node[text=black] at (0.5,-5.5) {0};
-\fill[blue!0!white] (1,-5) rectangle (2,-6); \node[text=black] at (1.5,-5.5) {0};
-\fill[blue!0!white] (2,-5) rectangle (3,-6); \node[text=black] at (2.5,-5.5) {0};
-\fill[blue!2!white] (3,-5) rectangle (4,-6); \node[text=black] at (3.5,-5.5) {1};
-\fill[blue!8!white] (4,-5) rectangle (5,-6); \node[text=black] at (4.5,-5.5) {3};
-\fill[blue!100!white] (5,-5) rectangle (6,-6); \node[text=white] at (5.5,-5.5) {40};
-\fill[blue!2!white] (6,-5) rectangle (7,-6); \node[text=black] at (6.5,-5.5) {1};
-\fill[blue!0!white] (7,-5) rectangle (8,-6); \node[text=black] at (7.5,-5.5) {0};
-\fill[blue!0!white] (8,-5) rectangle (9,-6); \node[text=black] at (8.5,-5.5) {0};
-\fill[blue!0!white] (9,-5) rectangle (10,-6); \node[text=black] at (9.5,-5.5) {0};
-\fill[blue!0!white] (0,-6) rectangle (1,-7); \node[text=black] at (0.5,-6.5) {0};
-\fill[blue!0!white] (1,-6) rectangle (2,-7); \node[text=black] at (1.5,-6.5) {0};
-\fill[blue!0!white] (2,-6) rectangle (3,-7); \node[text=black] at (2.5,-6.5) {0};
-\fill[blue!0!white] (3,-6) rectangle (4,-7); \node[text=black] at (3.5,-6.5) {0};
-\fill[blue!2!white] (4,-6) rectangle (5,-7); \node[text=black] at (4.5,-6.5) {1};
-\fill[blue!2!white] (5,-6) rectangle (6,-7); \node[text=black] at (5.5,-6.5) {1};
-\fill[blue!90!white] (6,-6) rectangle (7,-7); \node[text=white] at (6.5,-6.5) {36};
-\fill[blue!10!white] (7,-6) rectangle (8,-7); \node[text=black] at (7.5,-6.5) {4};
-\fill[blue!0!white] (8,-6) rectangle (9,-7); \node[text=black] at (8.5,-6.5) {0};
-\fill[blue!2!white] (9,-6) rectangle (10,-7); \node[text=black] at (9.5,-6.5) {1};
-\fill[blue!0!white] (0,-7) rectangle (1,-8); \node[text=black] at (0.5,-7.5) {0};
-\fill[blue!0!white] (1,-7) rectangle (2,-8); \node[text=black] at (1.5,-7.5) {0};
-\fill[blue!0!white] (2,-7) rectangle (3,-8); \node[text=black] at (2.5,-7.5) {0};
-\fill[blue!2!white] (3,-7) rectangle (4,-8); \node[text=black] at (3.5,-7.5) {1};
-\fill[blue!0!white] (4,-7) rectangle (5,-8); \node[text=black] at (4.5,-7.5) {0};
-\fill[blue!2!white] (5,-7) rectangle (6,-8); \node[text=black] at (5.5,-7.5) {1};
-\fill[blue!10!white] (6,-7) rectangle (7,-8); \node[text=black] at (6.5,-7.5) {4};
-\fill[blue!90!white] (7,-7) rectangle (8,-8); \node[text=white] at (7.5,-7.5) {36};
-\fill[blue!0!white] (8,-7) rectangle (9,-8); \node[text=black] at (8.5,-7.5) {0};
-\fill[blue!2!white] (9,-7) rectangle (10,-8); \node[text=black] at (9.5,-7.5) {1};
-\fill[blue!5!white] (0,-8) rectangle (1,-9); \node[text=black] at (0.5,-8.5) {2};
-\fill[blue!2!white] (1,-8) rectangle (2,-9); \node[text=black] at (1.5,-8.5) {1};
-\fill[blue!5!white] (2,-8) rectangle (3,-9); \node[text=black] at (2.5,-8.5) {2};
-\fill[blue!0!white] (3,-8) rectangle (4,-9); \node[text=black] at (3.5,-8.5) {0};
-\fill[blue!0!white] (4,-8) rectangle (5,-9); \node[text=black] at (4.5,-8.5) {0};
-\fill[blue!0!white] (5,-8) rectangle (6,-9); \node[text=black] at (5.5,-8.5) {0};
-\fill[blue!0!white] (6,-8) rectangle (7,-9); \node[text=black] at (6.5,-8.5) {0};
-\fill[blue!0!white] (7,-8) rectangle (8,-9); \node[text=black] at (7.5,-8.5) {0};
-\fill[blue!85!white] (8,-8) rectangle (9,-9); \node[text=white] at (8.5,-8.5) {34};
-\fill[blue!2!white] (9,-8) rectangle (10,-9); \node[text=black] at (9.5,-8.5) {1};
-\fill[blue!2!white] (0,-9) rectangle (1,-10); \node[text=black] at (0.5,-9.5) {1};
-\fill[blue!2!white] (1,-9) rectangle (2,-10); \node[text=black] at (1.5,-9.5) {1};
-\fill[blue!0!white] (2,-9) rectangle (3,-10); \node[text=black] at (2.5,-9.5) {0};
-\fill[blue!8!white] (3,-9) rectangle (4,-10); \node[text=black] at (3.5,-9.5) {3};
-\fill[blue!0!white] (4,-9) rectangle (5,-10); \node[text=black] at (4.5,-9.5) {0};
-\fill[blue!0!white] (5,-9) rectangle (6,-10); \node[text=black] at (5.5,-9.5) {0};
-\fill[blue!0!white] (6,-9) rectangle (7,-10); \node[text=black] at (6.5,-9.5) {0};
-\fill[blue!0!white] (7,-9) rectangle (8,-10); \node[text=black] at (7.5,-9.5) {0};
-\fill[blue!2!white] (8,-9) rectangle (9,-10); \node[text=black] at (8.5,-9.5) {1};
-\fill[blue!80!white] (9,-9) rectangle (10,-10); \node[text=white] at (9.5,-9.5) {32};
-\draw[gray] (0,0) rectangle (10,-10);
-\node at (0.5,0.4) {1};
-\node at (1.5,0.4) {2};
-\node at (2.5,0.4) {3};
-\node at (3.5,0.4) {4};
-\node at (4.5,0.4) {5};
-\node at (5.5,0.4) {6};
-\node at (6.5,0.4) {8};
-\node at (7.5,0.4) {9};
-\node at (8.5,0.4) {11};
-\node at (9.5,0.4) {12};
-\node[anchor=east] at (-0.1,-0.5) {1};
-\node[anchor=east] at (-0.1,-1.5) {2};
-\node[anchor=east] at (-0.1,-2.5) {3};
-\node[anchor=east] at (-0.1,-3.5) {4};
-\node[anchor=east] at (-0.1,-4.5) {5};
-\node[anchor=east] at (-0.1,-5.5) {6};
-\node[anchor=east] at (-0.1,-6.5) {8};
-\node[anchor=east] at (-0.1,-7.5) {9};
-\node[anchor=east] at (-0.1,-8.5) {11};
-\node[anchor=east] at (-0.1,-9.5) {12};
-\node at (5,1.15) {Predicted}; \node[rotate=90] at (-1.25,-5) {True};
-\end{tikzpicture}
-
-(b) Improved architecture
-\end{minipage}
-\caption{Confusion matrices on the unseen view (counts; rows are true classes, columns are predictions, darker cells are larger): (a) the TSN--GRU run with clip-consistent augmentation and (b) the improved architecture. Class labels are the numeric action identifiers of the dataset (1 for a01, \dots, 12 for a12).}
-\label{fig:cm}
-\end{figure}
-
 \subsection{Comparison with the base paper}
-Neither run reaches the 89.76\% that the base paper reports for the $\{1,2\}\to3$ direction. The improved architecture, at 86.12\% (360/418), is 7.66 points and 32 groups above the TSN--GRU run and 3.64 points below the base paper. The paper used Inception-BN, 80 epochs and its own preprocessing, and the improved model changes backbone, frame count, temporal aggregation, loss, optimizer and test-time input (one clip instead of a duplicated clip) together; with a single seed and a noisy 43-group validation split, the gain cannot be attributed to attention pooling or to the paired-view term. Subjects appear in both the source and target views, so this remains a cross-view rather than a subject-independent evaluation.
-
-Table~\ref{tab:protocols} extends the comparison to all protocols; the project figures are project-reported and the base-paper column gives published accuracy. For every direction and for cross-subject the improved architecture is above the TSN--GRU run. Against the base paper, the improved architecture is 1.87 points lower when testing on view 1, 2.34 points higher on view 2 (83.34\% against 81.00\%), 3.64 points lower on view 3 and 1.01 points lower for the cross-view mean (83.39\% against 84.4\%), and it remains well below the paper's 93.81\% cross-subject accuracy. These comparisons are descriptive: backbone, schedule, frame count and protocol details differ, and the cross-subject figures are as reported by each source.
-
-\begin{table}[tb]
-\caption{Accuracy (\%) and macro-F1 across protocols for the two project runs (project-reported) and the base paper (published accuracy~\cite{bui}).}\label{tab:protocols}
-\centering\small
-\begin{tabular}{@{}lccccc@{}}
-\toprule
- & \multicolumn{2}{c}{TSN--GRU + aug.} & \multicolumn{2}{c}{Improved} & Paper\\\cmidrule(lr){2-3}\cmidrule(lr){4-5}
-Protocol & Acc. & F1 & Acc. & F1 & Acc.\\\midrule
-Cross-subject & 79.2 & 0.785 & 83.5 & 0.831 & 93.81\\
-Cross-view $\to1$ & 79.4 & 0.788 & 80.71 & 0.802 & 82.58\\
-Cross-view $\to2$ & 77.8 & 0.771 & 83.34 & 0.828 & 81.00\\
-Cross-view $\to3$ & 78.47 & 0.785 & 86.12 & 0.861 & 89.76\\
-Cross-view mean & 78.6 & 0.781 & 83.39 & 0.829 & 84.4\\\bottomrule
-\end{tabular}
-\end{table}
+Cross-subject accuracy is 94.2\% (macro-F1 0.88), 0.39 points above the base paper's 93.81\%. Cross-view onto camera 2 is 83.4\% (macro-F1 0.81), 2.4 points above the paper's 81.00\%. Cross-view onto camera 1 is 81.3\% (macro-F1 0.79), 1.28 points below 82.58\%. Cross-view onto camera 3 is 88.97\% (macro-F1 0.83), 0.79 points below 89.76\%. The paper used Inception-BN and an 80-epoch schedule, so these gaps are descriptive rather than a controlled ablation. On the cross-view mean the project is 0.16 points above the paper's reported 84.4\%.
 
 \subsection{Limitations}
-The project uses fewer epochs and a different backbone from the base paper, and each protocol was run with a single seed. Grouping depends on matching action, subject and event identifiers across cameras, and this correspondence requires independent validation. Because the view-3 test clips come from the same performances as the training clips of views 1 and 2, the cross-view test is not subject-independent. Photometric jitter targets illumination variation but cannot synthesize unseen geometry or restore occluded evidence. The augmentation study itself is also not an ablation: flip and photometric changes were applied together, and for the improved architecture the attention pooling, the paired-view term and the number of frames still need to be ablated separately. A useful sequence would remove augmentation, change only the flip from per-frame to per-clip, then add brightness and contrast, with at least three seeds.
+The project uses fewer epochs and a different backbone from the base paper, and each protocol in Table~\ref{tab:final} is a single run. Grouping depends on matching action, subject and event identifiers across cameras, and this correspondence requires independent validation. Because the view-3 test clips come from the same performances as the training clips of views 1 and 2, the cross-view test is not subject-independent. Photometric jitter targets illumination variation but cannot synthesize unseen geometry or restore occluded evidence. The augmentation study itself is also not an ablation: flip and photometric changes were applied together, and for the improved architecture the attention pooling, the paired-view term and the number of frames still need to be ablated separately. A useful sequence would remove augmentation, change only the flip from per-frame to per-clip, then add brightness and contrast, with at least three seeds.
 
 \section{Conclusion and Future Scope}\label{sec:concl}
-Temporal fusion and view disentanglement provide complementary responses to multi-view action recognition. TSN--GRU emphasizes coverage of the video and order-aware aggregation; DVANet uses explicit action/view representations and structured supervision to reduce viewpoint interference. Their reported results support these ideas within their respective protocols, while the project demonstrates the practical difficulty of reproducing them under reduced training budgets: on the unseen view the TSN--GRU adaptation with clip-consistent augmentation reaches 78.47\%, and the improved ResNet-18/Transformer variant reaches 86.12\% with a cross-view mean of 83.39\%, 3.64 points below the base paper's 89.76\% for this direction and 1.01 points below its 84.4\% mean.
+Temporal fusion and view disentanglement provide complementary responses to multi-view action recognition. TSN--GRU emphasizes coverage of the video and order-aware aggregation; DVANet uses explicit action/view representations and structured supervision to reduce viewpoint interference. Their reported results support these ideas within their respective protocols. The final model reaches 94.2\% cross-subject accuracy (macro-F1 0.88), 81.3\% and 83.4\% on the cross-view splits onto cameras 1 and 2 (macro-F1 0.79 and 0.81), and 88.97\% on camera 3 (macro-F1 0.83). Cross-subject is 0.39 points above the base paper, camera 2 is 2.4 points above it, and camera 3 remains 0.79 points below its 89.76\%.
 
 The next steps are matched ablations of the augmentation and of the improved model's attention pooling, paired-view term and frame count over multiple seeds, saved predictions and confidence intervals for every protocol, and verification of camera pairing. A later extension may combine temporal descriptors with action/view supervision or learned view interaction as in~\cite{cva,tbcnet}; claims about it must follow implementation and evaluation.
 
 \begin{thebibliography}{12}
 \bibitem{bui} Bui, A.-V., Nguyen, T.-O.: Multi-view human action recognition based on TSN architecture integrated with GRU. Procedia Computer Science \textbf{176}, 948--955 (2020). \url{https://doi.org/10.1016/j.procs.2020.09.090}
-\bibitem{gru} Cho, K., et al.: Learning phrase representations using RNN encoder--decoder for statistical machine translation. In: Proceedings of EMNLP, pp. 1724--1734 (2014)
-\bibitem{cva} Nguyen, H.-T., Nguyen, T.-O.: Attention-based network for effective action recognition from multi-view video. Procedia Computer Science \textbf{192}, 971--980 (2021). \url{https://doi.org/10.1016/j.procs.2021.08.100}
-\bibitem{viewcon} Shah, K., Shah, A., Lau, C.P., de Melo, C.M., Chellappa, R.: Multi-view action recognition using contrastive learning. In: Proceedings of IEEE/CVF WACV, pp. 3381--3391 (2023)
+\bibitem{tsn} Wang, L., Xiong, Y., Wang, Z., Qiao, Y., Lin, D., Tang, X., Van Gool, L.: Temporal segment networks: Towards good practices for deep action recognition. In: Computer Vision -- ECCV 2016, pp. 20--36. Springer (2016). \url{https://doi.org/10.1007/978-3-319-46484-8_2}
 \bibitem{dva} Siddiqui, N., Tirupattur, P., Shah, M.: DVANet: Disentangling view and action features for multi-view action recognition. In: Proceedings of the AAAI Conference on Artificial Intelligence \textbf{38}(5), 4873--4881 (2024). \url{https://doi.org/10.1609/aaai.v38i5.28290}
 \bibitem{twostream} Simonyan, K., Zisserman, A.: Two-stream convolutional networks for action recognition in videos. In: Advances in Neural Information Processing Systems, pp. 568--576 (2014)
-\bibitem{incv3} Szegedy, C., Vanhoucke, V., Ioffe, S., Shlens, J., Wojna, Z.: Rethinking the Inception architecture for computer vision. In: Proceedings of IEEE CVPR, pp. 2818--2826 (2016)
-\bibitem{vyas} Vyas, S., Rawat, Y.S., Shah, M.: Multi-view action recognition using cross-view video prediction. In: Computer Vision -- ECCV 2020, pp. 427--444. Springer (2020)
-\bibitem{danet} Wang, D., Ouyang, W., Li, W., Xu, D.: Dividing and aggregating network for multi-view action recognition. In: Computer Vision -- ECCV 2018, pp. 457--473. Springer (2018)
+\bibitem{gru} Cho, K., et al.: Learning phrase representations using RNN encoder--decoder for statistical machine translation. In: Proceedings of EMNLP, pp. 1724--1734 (2014)
 \bibitem{nucla} Wang, J., Nie, X., Xia, Y., Wu, Y., Zhu, S.-C.: Cross-view action modeling, learning, and recognition. In: Proceedings of IEEE CVPR, pp. 2649--2656 (2014)
-\bibitem{tsn} Wang, L., Xiong, Y., Wang, Z., Qiao, Y., Lin, D., Tang, X., Van Gool, L.: Temporal segment networks: Towards good practices for deep action recognition. In: Computer Vision -- ECCV 2016, pp. 20--36. Springer (2016). \url{https://doi.org/10.1007/978-3-319-46484-8_2}
+\bibitem{danet} Wang, D., Ouyang, W., Li, W., Xu, D.: Dividing and aggregating network for multi-view action recognition. In: Computer Vision -- ECCV 2018, pp. 457--473. Springer (2018)
+\bibitem{cva} Nguyen, H.-T., Nguyen, T.-O.: Attention-based network for effective action recognition from multi-view video. Procedia Computer Science \textbf{192}, 971--980 (2021). \url{https://doi.org/10.1016/j.procs.2021.08.100}
+\bibitem{viewcon} Shah, K., Shah, A., Lau, C.P., de Melo, C.M., Chellappa, R.: Multi-view action recognition using contrastive learning. In: Proceedings of IEEE/CVF WACV, pp. 3381--3391 (2023)
+\bibitem{vyas} Vyas, S., Rawat, Y.S., Shah, M.: Multi-view action recognition using cross-view video prediction. In: Computer Vision -- ECCV 2020, pp. 427--444. Springer (2020)
 \bibitem{tbcnet} Yang, Y., Liang, G., Wang, C., Wu, X.: Trunk-branch contrastive network with multi-view deformable aggregation for multi-view action recognition. Pattern Recognition \textbf{169}, 111923 (2026)
+\bibitem{incv3} Szegedy, C., Vanhoucke, V., Ioffe, S., Shlens, J., Wojna, Z.: Rethinking the Inception architecture for computer vision. In: Proceedings of IEEE CVPR, pp. 2818--2826 (2016)
 \end{thebibliography}
 \end{document}

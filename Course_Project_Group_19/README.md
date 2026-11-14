@@ -36,7 +36,7 @@ The required Python packages are PyTorch, torchvision, NumPy, OpenCV and Pillow.
 
 ## Recorded evaluation and benchmark progression
 
-The baseline implementation achieved 70.8% cross-view accuracy (Macro-F1: 0.695) on held-out View 3 and 71.8% on Cross-subject (12 epochs), matching the official presentation results. With clip-consistent data augmentation (spatial flips and photometric perturbations), accuracy improved to 78.47% (328/418) with a Macro-F1 of 0.7845 on View 3. The improved ResNet-18 + Temporal Transformer architecture further advances performance to 86.12% on View 3 and 83.50% on Cross-subject. DVANet is reviewed in the report as related literature; it is not implemented as part of this demo.
+The final model reported in the summary and poster reaches 94.2% cross-subject accuracy (macro-F1 0.88), 81.3% on cross-view onto camera 1 (macro-F1 0.79), 83.4% onto camera 2 (macro-F1 0.81), and 88.97% onto camera 3 (macro-F1 0.83). DVANet is reviewed in the report as related literature; it is not implemented as part of this demo.
 
 ## Submission details
 
