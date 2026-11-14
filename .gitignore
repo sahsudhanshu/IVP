@@ -22,6 +22,7 @@ tmp/
 *.tar
 *.tar.gz
 *.pt
+!Course_Project_Group_19/12_Trained_Models/*.pt
 *.pth
 *.ckpt
 *.safetensors
