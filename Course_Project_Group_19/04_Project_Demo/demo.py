@@ -131,7 +131,7 @@ def main():
         if not cap.isOpened(): state['capture']=None; preview.config(text='Unable to preview video',image=''); return
         state['capture']=cap; refresh_preview()
     def browse():
-        examples=HERE/'example_videos'/'input'
+        examples=HERE/'example_videos'
         name=filedialog.askopenfilename(title='Choose a video',initialdir=str(examples if examples.is_dir() else HERE),filetypes=[('Video files','*.avi *.mp4 *.mov *.mkv'),('All files','*.*')])
         if name:
             state['result']=None; save_button.config(state='disabled')

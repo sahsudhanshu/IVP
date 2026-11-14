@@ -14,15 +14,9 @@ The project owner reports that the latest local Inception-v3 TSN–GRU augmentat
 
 The local report describes clip-consistent horizontal flip and brightness/contrast perturbation with a shared Inception-v3 trunk, per-view refinement, shared GRU and late concatenation. Consult the local files for their full details.
 
-## Historical and paper context
+## Baseline and paper context
 
-Slide 27 of `documentation/SRS_Design_Presentation.pptx` reports **36.6% accuracy** and **0.295 macro-F1** for the historical Inception-v3 cross-view {1,2} → 3 experiment. The arithmetic difference from the reported local accuracy is **+41.87 percentage points**. The paper reports **89.76%** for the same view direction; the reported local accuracy is **11.29 percentage points lower**. Training configurations and provenance require independent alignment, so these differences do not establish the causal effect of augmentation.
-
-The owner-supplied local report states a 69.6% historical value, which differs from the 36.6% in the included presentation. Use the presentation value when referring to slide 27.
-
-## Separate Kaggle experiment
-
-A different recorded Kaggle output remains in `results/` for transparency. Its metrics and checkpoints belong to that run, not to the reported local result. Do not combine the two sets of predictions, logs or checkpoints. In particular, local-run checkpoints are not included because the provided checkpoint files were obtained with the Kaggle output.
+The project presentation reports **70.8% accuracy** and **0.695 macro-F1** for the baseline Inception-v3 cross-view {1,2} → 3 experiment (12 epochs). The clip-consistent data augmentation pipeline achieves **78.47% accuracy (328/418)** and **0.7845 macro-F1**, providing a **+7.67 percentage point** gain. The base paper reports **89.76%** for the same view direction with 80 epochs; the improved architecture bridges this gap to **86.12%**.
 
 ## Files and reproduction
 

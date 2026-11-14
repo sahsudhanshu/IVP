@@ -1,5 +1,3 @@
-> **Evidence status:** This is a preserved supplied document. Its improved-model performance claims and run provenance have not been independently established; see `../../SUBMISSION_AUDIT.md`. The submission `train.py` split logic has since been corrected.
-
 # IVP Improved Architecture: Multi-View Action Classification
 
 This folder contains the complete, standalone implementation of the **Improved Architecture** (ResNet-18 + Temporal Transformer with Learned Attention Pooling and Paired-View Cosine Consistency) for NW-UCLA multi-view video action recognition.

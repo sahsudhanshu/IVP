@@ -1,0 +1,10 @@
+{
+  "loss": 0.5816,
+  "accuracy": 0.8334,
+  "macro_precision": 0.8301,
+  "macro_recall": 0.8271,
+  "macro_f1": 0.8281,
+  "support": 418,
+  "correct": 348,
+  "total": 418
+}

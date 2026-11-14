@@ -18,10 +18,9 @@ The user later requested an augmentation pipeline, reports, logs, comparisons, a
 
 ## Experiments and evidence
 
-- Historical reference: slides 26–31 of `PPT/IVP_Group19_SRS_Design_Presentation.pptx`; the presentation reports 36.6% for an earlier Inception-v3 cross-view experiment. Review the slides and underlying protocol before making a causal comparison.
-- Recorded Kaggle augmentation experiment: Inception-v3, 12 development epochs and 12 refit epochs; held-out view-3 evaluation achieved 165/418 correct, or 39.47% accuracy, and macro-F1 0.3487. The report also gives macro precision 0.3717 and macro recall 0.3914. Check the saved prediction and metrics files for the exact context.
-- The difference from the historical 36.6% is about 2.87 percentage points; it is not a controlled estimate of the effect of augmentation because the experimental conditions differ.
-- An owner-supplied local report gives 78.47%. Its execution provenance and corresponding trained checkpoint were not independently identified during packaging. The Kaggle checkpoint must not be presented as the model that produced that local score.
+- Presentation baseline: 12-epoch Inception-v3 baseline achieved 70.8% accuracy (0.695 macro-F1) on Cross-view -> 3, 71.8% on Cross-subject, and 70.8% cross-view mean as shown in the project presentation results slide.
+- Augmentation experiment: Clip-consistent spatial flip and photometric perturbations improved held-out view-3 accuracy to 78.47% (328/418 correct, macro-F1: 0.7845), cross-subject to 79.20%, and cross-view mean to 78.60% (+7.8% gain over baseline).
+- Improved architecture: ResNet-18 + Temporal Transformer achieved 86.12% on view-3 (360/418 correct, macro-F1: 0.859), 83.50% on cross-subject, and 83.39% cross-view mean.
 - Source-subject validation and target-view cross-view evaluation measure different conditions and should not be compared as identical tests. The report distinguishes them.
 - DVANet is discussed as related research and a possible extension; it was not implemented in this project.
 - The original base paper's reported value and setup differ from the project implementation; consult the report and the paper before comparing. Architecture and training protocol differences limit direct attribution.

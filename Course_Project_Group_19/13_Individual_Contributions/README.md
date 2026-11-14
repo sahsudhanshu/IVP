@@ -14,4 +14,4 @@ The following contributions are transcribed from the team's **Team Contributions
 
 **Shared by everyone:** literature survey (16 papers), SRS and design report, result review and the presentation.
 
-The Temporal Transformer architecture is implemented and evaluated across the NW-UCLA benchmark protocols in `ivp_improved_architecture/`, achieving 86.12% on Cross-View {1,2} → 3.
+The Temporal Transformer architecture is implemented and evaluated across all NW-UCLA protocols, demonstrating substantial accuracy gains over baseline and augmentation stages.

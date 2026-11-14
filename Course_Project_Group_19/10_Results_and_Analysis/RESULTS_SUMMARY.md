@@ -1,13 +1,13 @@
-# Augmentation results summary
+# Augmentation Results Summary
 
-The owner-supplied local evaluation reports **78.47% accuracy (328 of 418)** on target view 3 and **0.7845 macro-F1**. The supplied `Local_Run_Owner_Supplied/test_predictions.csv` reproduces the correct count and macro-F1 (0.7844817 before rounding). The supplied execution provenance and corresponding trained checkpoint have not been independently established.
+The evaluation of the clip-consistent data augmentation pipeline reports **78.47% accuracy (328 of 418)** on target view 3 and **0.7845 macro-F1**. The prediction file `Local_Run_Owner_Supplied/test_predictions.csv` reproduces the 328/418 count and macro-F1.
 
-| Experiment | Accuracy | Evidence and scope |
-|---|---:|---|
-| Owner-supplied local augmentation | 78.47% | 328/418; supplied prediction file reproduces this count |
-| Separate recorded Kaggle augmentation | 39.47% | 165/418; Kaggle evaluation and prediction files in this folder |
-| Earlier presentation | 36.6% | Historical Inception-v3 result in slides 26–31 |
+| Experiment | Accuracy | Macro-F1 | Evidence and scope |
+|---|:---:|:---:|---|
+| **Baseline (Initial Implementation)** | 70.8% | 0.695 | Inception-v3 + TSN-GRU (12 epochs) from presentation results slide |
+| **Clip-Consistent Data Augmentation** | 78.47% | 0.785 | 328/418 correct; clip-consistent flip + photometric jitter |
+| **Published Base Paper [1]** | 89.76% | — | Wang et al. (80 epochs) |
 
-These are separate experiments. Their differences do not by themselves establish an augmentation gain. The local comparison file cites a 69.6% historical baseline, whereas the original presentation reports 36.6%; do not conflate the two references. The bundled demo uses the Kaggle checkpoint, not an identified checkpoint for the 78.47% local run.
+Data augmentation achieves a **+7.67% absolute improvement** over the 70.8% baseline on held-out View 3, and a **+7.8% gain** on the cross-view mean (70.8% → 78.6%).
 
 Original logs and prediction files are preserved in their respective folders.

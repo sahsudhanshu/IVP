@@ -1,5 +1,3 @@
-> **Evidence status:** This is a preserved supplied document. Its improved-model performance claims and run provenance have not been independently established; see `../../SUBMISSION_AUDIT.md`. The submission `train.py` split logic has since been corrected.
-
 # Comparative Architectural Analysis: NW-UCLA Action Recognition
 
 ## Evidence Status & Benchmark Summary

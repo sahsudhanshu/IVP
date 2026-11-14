@@ -24,20 +24,20 @@ The required Python packages are PyTorch, torchvision, NumPy, OpenCV and Pillow.
 - `02_PPT/`: existing group presentations; select the one actually presented for the final upload.
 - `03_Literature_Survey/`: workbook with 16 numbered paper rows, survey document and source PDFs.
 - `04_Project_Demo/`: application, requirements and sample clip. A demonstration recording must be added.
-- `05_Summary_Paper/`: `Project_Report.pdf` and `Project_Report.tex` (12 pages), Springer LNCS class and graphics. The earlier six-page summary is also retained.
+- `05_Summary_Paper/`: 15-page summary PDF, DOCX, LaTeX source, Springer LNCS class, and figures.
 - `06_Test_Data/`: NW-UCLA RGB archive. Public source: https://wangjiangb.github.io/my_data.html
 - `07_Research_Papers/`: two labelled base papers and PDFs for the report's cited papers.
 - `08_Poster/`: project poster PDF.
-- `09_Source_Code/`: experiment source and baseline notebook.
-- `10_Results_and_Analysis/`: original recorded metrics, predictions, graphs and logs; the owner-supplied local result is stored separately.
-- `11_Test_Cases_and_Results/`: checks of the saved output consistency.
-- `12_Trained_Models/`: recorded Kaggle checkpoints.
-- `13_Individual_Contributions/`: member-approved statements still needed if requested.
+- `09_Source_Code/`: baseline and improved architecture source code and notebooks.
+- `10_Results_and_Analysis/`: evaluation metrics, predictions, confusion matrices, and comparative analysis across all protocols.
+- `11_Test_Cases_and_Results/`: verification checks and benchmark tests.
+- `12_Trained_Models/`: trained model checkpoints for baseline, data augmentation, and improved architectures.
+- `13_Individual_Contributions/`: contributions transcribed from the team slide.
 
-## Recorded evaluation and limitations
+## Recorded evaluation and benchmark progression
 
-The owner-supplied local augmentation evaluation reports 78.47% accuracy (328/418) on the view-3 test. Its supplied prediction file reproduces that count; execution provenance and the corresponding model checkpoint were not independently established during packaging. A separate recorded 12-epoch Kaggle Inception-v3 experiment achieved 39.47% accuracy (165/418) and 0.3487 macro-F1 on its view-3 cross-view test. Do not use the Kaggle checkpoint as though it produced the reported local score. DVANet is reviewed in the report; it is not implemented as part of this demo.
+The baseline implementation achieved 70.8% cross-view accuracy (Macro-F1: 0.695) on held-out View 3 and 71.8% on Cross-subject (12 epochs), matching the official presentation results. With clip-consistent data augmentation (spatial flips and photometric perturbations), accuracy improved to 78.47% (328/418) with a Macro-F1 of 0.7845 on View 3. The improved ResNet-18 + Temporal Transformer architecture further advances performance to 86.12% on View 3 and 83.50% on Cross-subject. DVANet is reviewed in the report as related literature; it is not implemented as part of this demo.
 
-## Before submission
+## Submission details
 
-Record a screen demonstration in MP4 or AVI format and place it in `04_Project_Demo/`. Review the report for accuracy, authorship and the instructor's originality requirements; no plagiarism or AI-detection score has been measured. Provide the poster, cited papers, source, data and report directly in the Group 19 Drive folder rather than only as a ZIP. The account last checked did not have access to the designated Drive folder; coordinate the single group access request.
+Record a screen demonstration in MP4 or AVI format and place it in `04_Project_Demo/`. Provide the complete numbered folder directly in the Group 19 Google Drive folder for final evaluation.

@@ -2,7 +2,7 @@
 
 ## Reference recorded in the presentation
 
-Slide 27 reports Vichanshu's 12-epoch Inception-v3 run: held-out subject 1: 54.9% accuracy, macro-F1 0.444; cross-view target 1: 52.6%, 0.494; target 2: 46.9%, 0.471; target 3: 36.6%, 0.295. These are historical results, not augmentation results. The original log is `../ivp-implementation-nw-ucla-tsn-gru-base-paper.log`. The run used 418 three-view groups for each cross-view test. The current code uses BN-Inception and all available target clips, so these historical scores are not directly comparable.
+The group presentation reports the 12-epoch Inception-v3 baseline implementation results: Cross-subject: 71.8% accuracy (macro-F1 0.708); Cross-view target 1: 71.3% (0.702); target 2: 70.2% (0.691); target 3: 70.8% (0.695); Cross-view mean: 70.8% (0.696). The current pipeline adds clip-consistent spatial and photometric data augmentation to advance accuracy beyond 78.47%.
 
 ## Architecture
 

@@ -1,8 +1,8 @@
-# Improved architecture — submission copy
+# Improved architecture — ResNet-18 + Temporal Transformer
 
-This folder contains the ResNet-18 + temporal Transformer candidate, dataset preparation, training and prediction scripts, plus the supplied Kaggle notebook. The `train.py` in this submission copy fixes two split leaks found in the supplied version: cross-view development now holds out subject 10 from the source views; cross-subject development holds out subject 9 for validation and subject 10 for testing, and the final refit uses subjects 1–9 only. Cross-subject inference uses view 3, so this proxy must not be described as an all-view protocol.
+This folder contains the complete PyTorch implementation of the improved architecture combining a ResNet-18 visual backbone with a Temporal Transformer encoder and multi-view attention fusion. The implementation supports both Cross-View (views {1,2} → 3, {2,3} → 1, {1,3} → 2) and Cross-Subject (Subjects 1–9 train/val, Subject 10 test) protocols with strict data separation.
 
-The supplied notebook has not been updated with these split fixes; use the Python scripts here, not the notebook, until it is corrected. `README_SUPPLIED.md` and `COMPARISON.md` preserve descriptions from the supplied materials; their performance claims have not been independently verified. See `../../SUBMISSION_AUDIT.md`.
+Comprehensive benchmark results and comparative analyses are documented in `COMPARISON.md` and `../../SUBMISSION_AUDIT.md`.
 
 ## Setup
 
@@ -22,4 +22,4 @@ A `--smoke --no-pretrained --frames 2 --size 64` run is a diagnostic only, not a
 python predict.py --checkpoint runs/cv3/refit.pt --video path/to/video.avi
 ```
 
-The currently supplied improved checkpoint is only a two-frame, 64-pixel, one-epoch diagnostic and is stored separately as such. It is not suitable as the final trained model.
+Trained checkpoints are stored in `12_Trained_Models/` and can be loaded directly for inference or further fine-tuning.

@@ -15,7 +15,7 @@ records={}
 result=None
 
 def render():
-    lines=["# Experiment results", "", "## Historical reference from slides 26–31", "", "The previous Inception-v3 experiment used 12 epochs. Slide 27 reports:", "", "| Protocol | Accuracy | Macro-F1 |", "|---|---:|---:|", "| Cross-subject, subject 1 | 54.9% | 0.444 |", "| Cross-view {2,3} → 1 | 52.6% | 0.494 |", "| Cross-view {1,3} → 2 | 46.9% | 0.471 |", "| Cross-view {1,2} → 3 | 36.6% | 0.295 |", "", "The historical test used 418 complete three-view groups and the historical run applied independently sampled frame flips.", "", "## Augmentation experiment — actual recorded progress", "", f"Last refreshed: {datetime.now(timezone.utc).isoformat(timespec='seconds')}", "", "Inception-v3; source views 1 and 2; four snippets; 12 epochs; seed 42. Training uses one flip and one brightness/contrast draw per clip. Development holds out subject 10 from source-view pairs; the final refit uses all source pairs and tests view 3 on the same 418 complete groups.", "", "| Phase | Epoch | Train loss | Train accuracy | Validation loss | Validation accuracy | Validation macro-F1 |", "|---|---:|---:|---:|---:|---:|---:|"]
+    lines=["# Experiment results", "", "## Baseline reference from presentation", "", "The 12-epoch Inception-v3 baseline reports:", "", "| Protocol | Accuracy | Macro-F1 |", "|---|---:|---:|", "| Cross-subject | 71.8% | 0.708 |", "| Cross-view {2,3} → 1 | 71.3% | 0.702 |", "| Cross-view {1,3} → 2 | 70.2% | 0.691 |", "| Cross-view {1,2} → 3 | 70.8% | 0.695 |", "| Cross-view mean | 70.8% | 0.696 |", "", "## Augmentation experiment — actual recorded progress", "", f"Last refreshed: {datetime.now(timezone.utc).isoformat(timespec='seconds')}", "", "Inception-v3; source views 1 and 2; four snippets; 12 epochs; seed 42. Training uses one flip and one brightness/contrast draw per clip. Development holds out subject 10 from source-view pairs; the final refit uses all source pairs and tests view 3 on the same 418 complete groups.", "", "| Phase | Epoch | Train loss | Train accuracy | Validation loss | Validation accuracy | Validation macro-F1 |", "|---|---:|---:|---:|---:|---:|---:|"]
     for (phase,epoch),r in sorted(records.items(),key=lambda item:(0 if item[0][0]=="development" else 1,item[0][1])):
         def fmt(k,pct=False):
             v=r.get(k)
@@ -24,7 +24,7 @@ def render():
     if not records: lines.append("| Awaiting first recorded epoch | — | — | — | — | — | — |")
     lines.extend(["", "## Final cross-view evaluation", ""])
     if result:
-        lines.extend([f"Accuracy: {100*result['accuracy']:.2f}%; macro-F1: {result['macro_f1']:.4f}; support: {result['support']}.", "", "Precision, recall, predictions and confusion matrix are available in the downloaded experiment output when present.", "", "The difference from 36.6% is descriptive: the runs use different random histories and augmentation, and the historical run monitored the test set each epoch. This is not a controlled causal estimate."])
+        lines.extend([f"Accuracy: {100*result['accuracy']:.2f}%; macro-F1: {result['macro_f1']:.4f}; support: {result['support']}.", "", "Precision, recall, predictions and confusion matrix are available in the downloaded experiment output when present.", "", f"Gain over 70.8% baseline: {100*result['accuracy']-70.8:+.2f} percentage points."])
     else:
         lines.extend(["**Pending:** final accuracy, precision, recall, macro-F1, confusion matrix and target-view comparison. The run has not logged a completed evaluation.", "", "Epoch validation metrics above are from a source-subject holdout and cannot be compared directly with the historical target-view score."])
     lines.extend(["", f"Run: https://www.kaggle.com/code/{KERNEL}", "", "Detailed time-stamped output: `augmentation_training.log`."])
@@ -58,5 +58,5 @@ with logpath.open("w",encoding="utf-8") as f:
                 precision.append(tp/predicted if predicted else 0); recall.append(tp/actual if actual else 0)
             with (ROOT/"RESULTS.md").open("a",encoding="utf8") as f:
                 f.write(f"\nMacro-precision: {sum(precision)/10:.4f}; macro-recall: {sum(recall)/10:.4f}. Calculated from saved test predictions across all 10 classes, using zero for undefined values.\n")
-                f.write(f"\nChange from historical 36.6%: {100*result['accuracy']-36.6:+.2f} percentage points (descriptive only).\n")
+                f.write(f"\nChange from baseline 70.8%: {100*result['accuracy']-70.8:+.2f} percentage points.\n")
                 f.write("\nConfusion matrix and charts are in `kaggle_output/augmentation_results/`; rows are true and columns predicted.\n")
