@@ -21,6 +21,23 @@ def seed_all(seed):
     if torch.cuda.is_available(): torch.cuda.manual_seed_all(seed)
 
 def now(): return datetime.now(timezone.utc).isoformat(timespec='seconds')
+
+def make_splits(groups, protocol):
+    """Keep development subjects disjoint and never refit on cross-subject test data."""
+    if protocol == 'cs':
+        train = [g for g in groups if g['subject'] not in (9, 10)]
+        validation = [g for g in groups if g['subject'] == 9]
+        refit = [g for g in groups if g['subject'] != 10]
+        test = [g for g in groups if g['subject'] == 10]
+    else:
+        train = [g for g in groups if g['subject'] != 10]
+        validation = [g for g in groups if g['subject'] == 10]
+        refit = list(groups)
+        test = list(groups)
+    if not all((train, validation, refit, test)):
+        raise ValueError(f'Empty split for protocol {protocol}')
+    return train, validation, refit, test
+
 def log(out, record):
     record={'timestamp_utc':now(),**record}; line=json.dumps(record,allow_nan=False)
     print(line,flush=True)
@@ -113,26 +130,21 @@ def main():
     groups=inventory(args.data)
     if len(groups)!=418 or {g['action_id'] for g in groups}!=set(ACTIONS):
         raise ValueError(f'Expected the project dataset with 418 complete groups and ten actions, got {len(groups)} groups')
-    # Protocol-specific train/val split
+    train, val, refit_groups, test_groups = make_splits(groups, args.protocol)
     if args.protocol == 'cs':
-        train=[g for g in groups if g['subject']!=10]
-        val=[g for g in groups if g['subject']==10]
-        protocol_desc='Cross-Subject (Subjects 1-9 source, Subject 10 held-out)'
+        protocol_desc='Cross-Subject (Subjects 1-8 development, subject 9 validation, subject 10 test; view 3 test)'
     else:
         held_view=target_view+1  # 1-indexed view number
         source_view_nums=[v+1 for v in source_views]
-        train=groups; val=groups  # all groups have all views; split is view-based not group-based
-        # For cross-view, all groups are used for both train and val (different views accessed)
         protocol_desc=f'Cross-View {{{"&".join(str(v) for v in source_view_nums)}}} -> held-out View {held_view}'
     if not val or not train: raise ValueError('Source-subject split is empty')
     if args.smoke: train=train[:2]; val=val[:2]; args.epochs=1
     out=Path(args.output); out.mkdir(parents=True,exist_ok=False)
     device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    test_groups = groups if args.protocol != 'cs' else val
     (out/'config.json').write_text(json.dumps({**vars(args),'protocol':args.protocol,'protocol_desc':protocol_desc,
         'source_views':[v+1 for v in source_views],'target_view':target_view+1},indent=2),encoding='utf-8')
     (out/'split_manifest.json').write_text(json.dumps({'protocol':args.protocol,'development_train':train,'validation':val,
-        'refit_train':train if args.protocol!='cs' else train+val,
+        'refit_train':refit_groups,
         'test':test_groups if args.evaluate_test else [],'actions':ACTIONS},indent=2),encoding='utf-8')
     log(out,{'event':'start','protocol':args.protocol,'protocol_desc':protocol_desc,
              'device':str(device),'gpu':torch.cuda.get_device_name(0) if device.type=='cuda' else None,
@@ -142,7 +154,6 @@ def main():
     if args.smoke:
         log(out,{'event':'smoke_complete','warning':'Diagnostic subset only; not an experiment result'}); return
     log(out,{'event':'refit_start','selected_epoch':best_epoch})
-    refit_groups=groups if args.protocol!='cs' else train+val
     model,_=fit('refit',refit_groups,None,args,out,device,best_epoch,source_views,target_view)
     if args.evaluate_test:
         test_loader=DataLoader(VideoGroups(test_groups,'test',args.frames,args.size,source_views,target_view),
