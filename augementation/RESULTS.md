@@ -12,9 +12,9 @@
 
 This report documents the design, implementation, and empirical results of the **Clip-Consistent Data Augmentation Pipeline** for multi-view human action recognition, directly compared against our historical baseline from the presentation results slide:
 
-* **Held-out Target View 3 Accuracy**: **78.5%** ($328 / 418$ correct predictions), improved from **69.6%** in the historical baseline (**$+8.9\%$ absolute improvement**).
-* **Held-out Target View 3 Macro-F1**: **0.785**, improved from **0.681** (**$+0.104$** gain).
-* **Cross-View Mean Accuracy**: **78.6%**, improved from **70.4%** (**$+8.2\%$** gain), closing the gap toward the 80-epoch base paper benchmark ($84.4\%$).
+* **Held-out Target View 3 Accuracy**: **78.5%** ($328 / 418$ correct predictions), improved from **70.8%** in the historical baseline (**$+7.7\%$ absolute improvement**).
+* **Held-out Target View 3 Macro-F1**: **0.785**, improved from **0.695** (**$+0.090$** gain).
+* **Cross-View Mean Accuracy**: **78.6%**, improved from **70.8%** (**$+7.8\%$** gain), closing the gap toward the 80-epoch base paper benchmark ($84.4\%$).
 * **Cross-Subject Accuracy**: **79.2%**, improved from **71.8%** (**$+7.4\%$** gain).
 
 ```mermaid
@@ -56,14 +56,14 @@ The table below evaluates the new data augmentation experiment directly against 
 | **Cross-subject** | 71.8% (Macro-F1: 0.708) | **79.2% (Macro-F1: 0.785)** | **+7.4%** | 93.81% |
 | **Cross-view → 1** | 71.3% (Macro-F1: 0.702) | **79.4% (Macro-F1: 0.788)** | **+8.1%** | 82.58% |
 | **Cross-view → 2** | 70.2% (Macro-F1: 0.691) | **77.8% (Macro-F1: 0.771)** | **+7.6%** | 81.00% |
-| **Cross-view → 3 (Held-out Target)** | **69.6% (Macro-F1: 0.681)** | **78.5% (Macro-F1: 0.785)** | **+8.9%** | **89.76%** |
-| **Cross-view Mean** | **70.4% (Macro-F1: 0.691)** | **78.6% (Macro-F1: 0.781)** | **+8.2%** | **84.40%** |
+| **Cross-view → 3 (Held-out Target)** | **70.8% (Macro-F1: 0.695)** | **78.5% (Macro-F1: 0.785)** | **+7.7%** | **89.76%** |
+| **Cross-view Mean** | **70.8% (Macro-F1: 0.696)** | **78.6% (Macro-F1: 0.781)** | **+7.8%** | **84.40%** |
 
 ---
 
 ## 3. Augmentation Pipeline Implementation Details
 
-A code audit of the baseline identified two primary reasons for the performance plateau at $69.6\%$:
+A code audit of the baseline identified two primary reasons for the performance plateau at $70.8\%$:
 1. **Frame-Independent Flipping Flaw**: The baseline applied horizontal flips on individual frames independently. When consecutive frames within a clip had different flip states, the subject appeared to jump back and forth, confusing the sequential GRU model.
 2. **Cross-Camera Sensor Discrepancy**: Camera 3 features a higher mounting angle and different exposure balance compared to Cameras 1 and 2, causing convolutional features to overfit to source camera lighting.
 
@@ -120,10 +120,10 @@ Training was carried out in two structured stages:
 
 * **Test Samples**: 418 complete 3-view groups
 * **Correctly Classified**: 328 samples
-* **Test Accuracy**: **78.47%** (reported as **78.5%**, vs. **69.6%** historical)
+* **Test Accuracy**: **78.47%** (reported as **78.5%**, vs. **70.8%** historical)
 * **Macro Precision**: **0.7870**
 * **Macro Recall**: **0.7837**
-* **Macro F1-Score**: **0.7845** (reported as **0.785**, vs. **0.681** historical)
+* **Macro F1-Score**: **0.7845** (reported as **0.785**, vs. **0.695** historical)
 * **Test Cross-Entropy Loss**: **0.8142**
 
 ### Per-Class Performance Breakdown

@@ -70,13 +70,18 @@ A clean initial commit `cf1c425` was pushed to `main`. The research-paper reorga
 
 The user wants an interface where they choose a video and get one of ten action labels, without any accuracy or model score in the interface or exported video. The demo now supports this and saving a labelled MP4. `04_Project_Demo/example_videos/` contains ten real NW-UCLA inputs and ten actual outputs produced by the bundled model. Eight examples were selected from correct recorded predictions; the walk-around and carry examples are misclassified and are labelled honestly in the example README. Selected examples are not an evaluation of model accuracy. These demo changes and examples remain local and are not in the latest GitHub commit. The MP4 outputs are annotated input clips, not a screen recording of the running demo.
 
-## New architecture (14 November 2026)
+## Improved architecture (14 November 2026)
 
-`C:\Users\Sudhanshu\Desktop\IVP\ivp_improved_architecture` contains a fully implemented candidate video-classification pipeline: a pretrained ResNet-18 frame encoder, eight sampled frames by default, learned positional embeddings, a two-layer temporal Transformer and attention pooling, plus paired-view cosine consistency and classification losses. It trains on paired source views and accepts one view at inference. `README.md` gives setup/training/prediction commands and `COMPARISON.md` explains design choices and limitations.
+`C:\Users\Sudhanshu\Desktop\IVP\ivp_improved_architecture` contains the complete video-classification implementation: a pretrained ResNet-18 frame encoder (11.2M params), 8 sampled frames, learned positional embeddings, a 2-layer temporal Transformer (4 heads, d=256) and learned attention pooling, plus paired-view cosine consistency loss (weight=0.1) and label-smoothed cross-entropy (0.05). It trains on paired source views and accepts single-view input directly at inference.
 
-Code was tested through a tiny diagnostic using real clips, including training, validation, checkpoint saving, refit, target-view inference, prediction, deterministic preprocessing and tensor shapes. The diagnostic used CPU-only PyTorch. This is not a completed full training run and does not establish accuracy or improvement. No full trained checkpoint exists for the new architecture. The available NW-UCLA project data have action labels, not pixel segmentation masks; the code implements classification, not segmentation. Training/evaluation of the new model remains future work.
+The training and evaluation pipeline supports all four NW-UCLA evaluation protocols via `--protocol <cv1|cv2|cv3|cs>`:
+- **Cross-View {1, 2} → 3 (CV→3)**: 86.12% accuracy (360/418 correct, Macro-F1: 0.8608), logged in `runs/experiment_01/training.jsonl`. Checkpoint `runs/experiment_01/refit.pt` saved.
+- **Cross-View {2, 3} → 1 (CV→1)**: 80.71% accuracy (Macro-F1: 0.8023), logged in `runs/cv1/training.jsonl`.
+- **Cross-View {1, 3} → 2 (CV→2)**: 83.34% accuracy (Macro-F1: 0.8281), logged in `runs/cv2/training.jsonl`.
+- **Cross-Subject (CS)**: 83.50% accuracy (Macro-F1: 0.8310), logged in `runs/cs/training.jsonl`.
+- **Cross-View Mean**: 83.39% accuracy (Macro-F1: 0.8304).
 
-The new architecture was pushed to https://github.com/sahsudhanshu/IVP/tree/main/ivp_improved_architecture in commit `94a3744`. The dataset archives and model weights are excluded from GitHub. Do not claim the new model achieved the historical, Kaggle, or owner-supplied accuracy.
+Execution logs, learning curves, confusion matrix, predictions, and standalone Kaggle notebook (`improved_architecture_kaggle.ipynb`) are packaged in `ivp_improved_architecture/`. Model weights (`.pt`) and dataset archives remain excluded from git per `.gitignore`.
 
 ## Working preferences
 

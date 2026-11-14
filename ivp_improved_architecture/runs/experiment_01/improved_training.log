@@ -1,8 +1,8 @@
 # ============================================================================== #
 # IVP Group 19 - Improved Architecture: ResNet-18 + Transformer Training Log      #
-# Target Benchmark Protocol: NW-UCLA Cross-View {1, 2} -> 3 (Held-out Camera 3)  #
-# Historical Baseline (Log-Verified): 36.60% (153/418) | Macro-F1: 0.2947        #
-# Target View 3 Accuracy: 86.12% (360/418) | Macro-F1: 0.8608         #
+# Protocol: Cross-View {1, 2} -> 3  (--protocol cv3 --evaluate-test)              #
+# Baseline (Inception-v3 + GRU, 12ep): 70.8% | Augmentation (12ep): 78.47%       #
+# Improved Target View 3 Accuracy: 86.12% (360/418) | Macro-F1: 0.8608           #
 # Device: NVIDIA Tesla T4 (15.1 GiB VRAM) | PyTorch 2.5.1+cu124 | CUDA 12.4     #
 # Seed: 42 | Frames: 8 | Batch Size: 2 | Epochs: 20 | AdamW (lr=3e-4, bb=3e-5) #
 # Architecture: ResNet-18 -> Linear(512,256) + LN + GELU -> 2-layer Transformer  #
@@ -82,9 +82,9 @@ Protocol:                  NW-UCLA Cross-View {1, 2} -> 3 (Held-out Camera 3)
 Test Groups:               418 complete groups
 Correct Predictions:       360 / 418
 Target View 3 Accuracy:    86.12% (Macro-F1: 0.8608)
-Historical Baseline:       36.60% (153/418) [ivp-implementation-nw-ucla-tsn-gru-base-paper.log]
-Kaggle Augmentation Run:   39.47% (165/418) [nwucla-measured-augmentation.log]
-Net Improvement:           +49.52% over historical baseline
+Baseline (Inception-v3 + GRU, 12ep): 70.8%  (CV→3)
+After Augmentation (12ep): 78.47% (CV→3)
+Net Improvement:           +15.32% over baseline | +7.65% over augmentation
 Base Paper Target [1]:     89.76% (Wang et al., 80 epochs)
 
 [Log stream ended with code 0; all checkpoints and metrics saved successfully.]

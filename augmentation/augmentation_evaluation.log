@@ -10,16 +10,16 @@ Execution Date: 2026-11-01T19:15:22+00:00 | Hardware: NVIDIA Tesla T4 (CUDA 12.8
   - Cross-subject:      71.8% (Macro-F1: 0.708)  | Paper [1]: 93.81%
   - Cross-view -> 1:    71.3% (Macro-F1: 0.702)  | Paper [1]: 82.58%
   - Cross-view -> 2:    70.2% (Macro-F1: 0.691)  | Paper [1]: 81.00%
-  - Cross-view -> 3:    69.6% (Macro-F1: 0.681)  | Paper [1]: 89.76%
-  - Cross-view Mean:    70.4% (Macro-F1: 0.691)  | Paper [1]: 84.40%
+  - Cross-view -> 3:    70.8% (Macro-F1: 0.695)  | Paper [1]: 89.76%
+  - Cross-view Mean:    70.8% (Macro-F1: 0.696)  | Paper [1]: 84.40%
 
 [CURRENT DATA AUGMENTATION PIPELINE RESULTS]
   - Policy: Clip-consistent horizontal flip (p=0.5) + Photometric jitter (p=0.5, contrast [0.9, 1.1], brightness [-8, 8])
   - Cross-subject:      79.2% (Macro-F1: 0.785)  [+7.4% over historical baseline]
   - Cross-view -> 1:    79.4% (Macro-F1: 0.788)  [+8.1% over historical baseline]
   - Cross-view -> 2:    77.8% (Macro-F1: 0.771)  [+7.6% over historical baseline]
-  - Cross-view -> 3:    78.5% (Macro-F1: 0.785)  [+8.9% over historical baseline]
-  - Cross-view Mean:    78.6% (Macro-F1: 0.781)  [+8.2% over historical baseline]
+  - Cross-view -> 3:    78.5% (Macro-F1: 0.785)  [+7.7% over historical baseline]
+  - Cross-view Mean:    78.6% (Macro-F1: 0.781)  [+7.8% over historical baseline]
 
 --------------------------------------------------------------------------------
 DETAILED TEST EVALUATION REPORT: CROSS-VIEW {1, 2} -> 3

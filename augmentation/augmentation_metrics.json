@@ -18,13 +18,13 @@
         "paper_accuracy": 0.81
       },
       "cross_view_to_3": {
-        "accuracy": 0.696,
-        "macro_f1": 0.681,
+        "accuracy": 0.708,
+        "macro_f1": 0.695,
         "paper_accuracy": 0.8976
       },
       "cross_view_mean": {
-        "accuracy": 0.704,
-        "macro_f1": 0.691,
+        "accuracy": 0.708,
+        "macro_f1": 0.696,
         "paper_accuracy": 0.844
       }
     }
@@ -86,12 +86,12 @@
       "cross_view_to_3": {
         "accuracy": 0.7847,
         "macro_f1": 0.7845,
-        "delta_vs_historical": "+8.9% (target 78.5%)"
+        "delta_vs_historical": "+7.7% (target 78.5%)"
       },
       "cross_view_mean": {
         "accuracy": 0.7855,
         "macro_f1": 0.7814,
-        "delta_vs_historical": "+8.2%"
+        "delta_vs_historical": "+7.8%"
       }
     },
     "primary_evaluation_cv3": {

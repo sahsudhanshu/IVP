@@ -1,4 +1,11 @@
-"""Train development and refit models; optionally evaluate the held-out view once."""
+"""Train development and refit models; optionally evaluate the held-out view once.
+
+Supported protocols (--protocol):
+  cv1  Cross-View {2,3} -> held-out View 1
+  cv2  Cross-View {1,3} -> held-out View 2
+  cv3  Cross-View {1,2} -> held-out View 3  [default]
+  cs   Cross-Subject: Subjects 1-9 source, Subject 10 held-out
+"""
 import argparse, csv, json, random, time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -6,7 +13,7 @@ import numpy as np
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
-from data import ACTIONS, ACTION_NAMES, VideoGroups, inventory
+from data import ACTIONS, ACTION_NAMES, VideoGroups, inventory, PROTOCOLS
 from model import ViewInvariantActionNet, paired_loss
 
 def seed_all(seed):
@@ -42,7 +49,7 @@ def evaluate(model,loader,device):
     result,cm=metrics(targets,predictions,losses/len(targets))
     return result,cm,targets,predictions
 
-def fit(phase,groups,validation,args,out,device,epochs):
+def fit(phase,groups,validation,args,out,device,epochs,source_views=(0,1),target_view=2):
     seed_all(args.seed)
     model=ViewInvariantActionNet(frames=args.frames,pretrained=not args.no_pretrained).to(device)
     optimizer=torch.optim.AdamW([{'params':model.encoder.parameters(),'lr':args.backbone_lr},
@@ -51,9 +58,9 @@ def fit(phase,groups,validation,args,out,device,epochs):
              weight_decay=args.weight_decay)
     scheduler=torch.optim.lr_scheduler.CosineAnnealingLR(optimizer,T_max=args.epochs)
     scaler=torch.amp.GradScaler(device.type,enabled=device.type=='cuda')
-    train_loader=DataLoader(VideoGroups(groups,'train',args.frames,args.size),batch_size=args.batch_size,shuffle=True,
+    train_loader=DataLoader(VideoGroups(groups,'train',args.frames,args.size,source_views,target_view),batch_size=args.batch_size,shuffle=True,
                             num_workers=args.workers,pin_memory=device.type=='cuda')
-    val_loader=DataLoader(VideoGroups(validation,'validation',args.frames,args.size),batch_size=args.batch_size,
+    val_loader=DataLoader(VideoGroups(validation,'validation',args.frames,args.size,source_views,target_view),batch_size=args.batch_size,
                           num_workers=args.workers,pin_memory=device.type=='cuda') if validation else None
     best=(-1.,-1.); best_epoch=0
     for epoch in range(1,epochs+1):
@@ -88,47 +95,66 @@ def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--data',required=True,help='Extracted dataset directory containing multiview_action_videos')
     p.add_argument('--output',required=True,help='New output directory; must not already exist')
+    p.add_argument('--protocol',choices=['cv1','cv2','cv3','cs'],default='cv3',
+                   help='Evaluation protocol: cv1/cv2/cv3=cross-view held-out view 1/2/3; cs=cross-subject (default: cv3)')
     p.add_argument('--epochs',type=int,default=20); p.add_argument('--frames',type=int,default=8)
     p.add_argument('--size',type=int,default=224); p.add_argument('--batch-size',type=int,default=2)
     p.add_argument('--lr',type=float,default=3e-4); p.add_argument('--backbone-lr',type=float,default=3e-5)
     p.add_argument('--weight-decay',type=float,default=1e-4); p.add_argument('--consistency-weight',type=float,default=.1)
     p.add_argument('--seed',type=int,default=42); p.add_argument('--workers',type=int,default=0)
     p.add_argument('--no-pretrained',action='store_true',help='Random initialization; intended for smoke tests')
-    p.add_argument('--evaluate-test',action='store_true',help='Evaluate target view 3 after refit; do not tune on test')
+    p.add_argument('--evaluate-test',action='store_true',help='Evaluate the held-out split after refit; do not tune on test')
     p.add_argument('--smoke',action='store_true',help='Run a tiny diagnostic subset; never report as model performance')
     args=p.parse_args()
     if min(args.epochs,args.frames,args.batch_size)<=0 or args.size<32 or args.workers<0 or args.consistency_weight<0: p.error('Invalid numeric argument')
     if args.smoke and args.evaluate_test: p.error('Smoke runs cannot evaluate the target test set')
+    proto=PROTOCOLS[args.protocol]
+    source_views=proto['source']; target_view=proto['target']
     groups=inventory(args.data)
     if len(groups)!=418 or {g['action_id'] for g in groups}!=set(ACTIONS):
         raise ValueError(f'Expected the project dataset with 418 complete groups and ten actions, got {len(groups)} groups')
-    train=[g for g in groups if g['subject']!=10]; val=[g for g in groups if g['subject']==10]
+    # Protocol-specific train/val split
+    if args.protocol == 'cs':
+        train=[g for g in groups if g['subject']!=10]
+        val=[g for g in groups if g['subject']==10]
+        protocol_desc='Cross-Subject (Subjects 1-9 source, Subject 10 held-out)'
+    else:
+        held_view=target_view+1  # 1-indexed view number
+        source_view_nums=[v+1 for v in source_views]
+        train=groups; val=groups  # all groups have all views; split is view-based not group-based
+        # For cross-view, all groups are used for both train and val (different views accessed)
+        protocol_desc=f'Cross-View {{{"&".join(str(v) for v in source_view_nums)}}} -> held-out View {held_view}'
     if not val or not train: raise ValueError('Source-subject split is empty')
     if args.smoke: train=train[:2]; val=val[:2]; args.epochs=1
     out=Path(args.output); out.mkdir(parents=True,exist_ok=False)
     device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    (out/'config.json').write_text(json.dumps(vars(args),indent=2),encoding='utf-8')
-    (out/'split_manifest.json').write_text(json.dumps({'development_train':train,'validation':val,
-        'refit_train':train+val,'test':groups if args.evaluate_test else [],'actions':ACTIONS},indent=2),encoding='utf-8')
-    log(out,{'event':'start','device':str(device),'gpu':torch.cuda.get_device_name(0) if device.type=='cuda' else None,
+    test_groups = groups if args.protocol != 'cs' else val
+    (out/'config.json').write_text(json.dumps({**vars(args),'protocol':args.protocol,'protocol_desc':protocol_desc,
+        'source_views':[v+1 for v in source_views],'target_view':target_view+1},indent=2),encoding='utf-8')
+    (out/'split_manifest.json').write_text(json.dumps({'protocol':args.protocol,'development_train':train,'validation':val,
+        'refit_train':train if args.protocol!='cs' else train+val,
+        'test':test_groups if args.evaluate_test else [],'actions':ACTIONS},indent=2),encoding='utf-8')
+    log(out,{'event':'start','protocol':args.protocol,'protocol_desc':protocol_desc,
+             'device':str(device),'gpu':torch.cuda.get_device_name(0) if device.type=='cuda' else None,
              'pytorch':torch.__version__,'train_groups':len(train),'validation_groups':len(val),
              'pretrained':not args.no_pretrained,'smoke':args.smoke,'config':vars(args)})
-    _,best_epoch=fit('development',train,val,args,out,device,args.epochs)
+    _,best_epoch=fit('development',train,val,args,out,device,args.epochs,source_views,target_view)
     if args.smoke:
         log(out,{'event':'smoke_complete','warning':'Diagnostic subset only; not an experiment result'}); return
     log(out,{'event':'refit_start','selected_epoch':best_epoch})
-    model,_=fit('refit',train+val,None,args,out,device,best_epoch)
+    refit_groups=groups if args.protocol!='cs' else train+val
+    model,_=fit('refit',refit_groups,None,args,out,device,best_epoch,source_views,target_view)
     if args.evaluate_test:
-        test_loader=DataLoader(VideoGroups(groups,'test',args.frames,args.size),batch_size=args.batch_size,
-                               num_workers=args.workers,pin_memory=device.type=='cuda')
+        test_loader=DataLoader(VideoGroups(test_groups,'test',args.frames,args.size,source_views,target_view),
+                               batch_size=args.batch_size,num_workers=args.workers,pin_memory=device.type=='cuda')
         result,cm,ys,ps=evaluate(model,test_loader,device)
         (out/'test_metrics.json').write_text(json.dumps(result,indent=2),encoding='utf-8')
         with (out/'test_predictions.csv').open('w',newline='',encoding='utf-8') as f:
             writer=csv.writer(f); writer.writerow(['true_action_id','predicted_action_id','subject','event','path'])
-            for g,y,pred in zip(groups,ys,ps): writer.writerow([ACTIONS[y],ACTIONS[pred],g['subject'],g['event'],g['paths'][2]])
+            for g,y,pred in zip(test_groups,ys,ps): writer.writerow([ACTIONS[y],ACTIONS[pred],g['subject'],g['event'],g['paths'][target_view]])
         with (out/'confusion_matrix.csv').open('w',newline='',encoding='utf-8') as f:
             writer=csv.writer(f); writer.writerow(['true/predicted']+ACTION_NAMES)
             for name,row in zip(ACTION_NAMES,cm.tolist()): writer.writerow([name]+row)
-        log(out,{'event':'target_test_complete',**result})
+        log(out,{'event':'target_test_complete','protocol':args.protocol,**result})
     else: log(out,{'event':'complete','test_status':'not evaluated'})
 if __name__=='__main__': main()

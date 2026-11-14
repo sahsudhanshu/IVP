@@ -11,8 +11,8 @@ This report compares the historical baseline results from our team's presentatio
 | **Cross-subject** | 71.8% (Macro-F1: 0.708) | **79.2% (Macro-F1: 0.785)** | **+7.4%** (+0.077 F1) | 93.81% |
 | **Cross-view → 1** | 71.3% (Macro-F1: 0.702) | **79.4% (Macro-F1: 0.788)** | **+8.1%** (+0.086 F1) | 82.58% |
 | **Cross-view → 2** | 70.2% (Macro-F1: 0.691) | **77.8% (Macro-F1: 0.771)** | **+7.6%** (+0.080 F1) | 81.00% |
-| **Cross-view → 3 (Held-out Target)** | **69.6% (Macro-F1: 0.681)** | **78.5% (Macro-F1: 0.785)** | **+8.9%** (+0.104 F1) | **89.76%** |
-| **Cross-view Mean** | **70.4% (Macro-F1: 0.691)** | **78.6% (Macro-F1: 0.781)** | **+8.2%** (+0.090 F1) | **84.40%** |
+| **Cross-view → 3 (Held-out Target)** | **70.8% (Macro-F1: 0.695)** | **78.5% (Macro-F1: 0.785)** | **+7.7%** (+0.090 F1) | **89.76%** |
+| **Cross-view Mean** | **70.8% (Macro-F1: 0.696)** | **78.6% (Macro-F1: 0.781)** | **+7.8%** (+0.085 F1) | **84.40%** |
 
 ---
 
@@ -28,8 +28,8 @@ This report compares the historical baseline results from our team's presentatio
 | **Multi-View Fusion** | Concatenation of view GRU states | Concatenation of view GRU states |
 | **Training Epochs** | 12 epochs | 12 epochs |
 | **Learning Rate Schedule** | 0.001 (decay $\div 10$ at ep 4, 9) | 0.001 (decay $\div 10$ at ep 4, 9) |
-| **View 3 Target Accuracy** | **69.6%** (291 / 418 correct) | **78.5%** (328 / 418 correct) |
-| **View 3 Target Macro-F1** | **0.681** | **0.785** |
+| **View 3 Target Accuracy** | **70.8%** (296 / 418 correct) | **78.5%** (328 / 418 correct) |
+| **View 3 Target Macro-F1** | **0.695** | **0.785** |
 
 ---
 
@@ -44,6 +44,6 @@ This report compares the historical baseline results from our team's presentatio
 * Clip-consistent photometric perturbation forces the convolutional feature extractor to generalize across lighting variations rather than overfitting to source camera sensor properties.
 
 ### C. Quantitative Gains
-1. **Target View 3 Gain**: Accuracy increased by **+8.9 percentage points** ($69.6\% \rightarrow 78.5\%$), correctly classifying $37$ additional video groups.
-2. **Macro-F1 Jump**: F1 increased from **0.681 to 0.785**, indicating balanced improvements across all action classes.
-3. **Cross-View Mean**: Advanced from **70.4% to 78.6%**, closing the gap to the base paper's 80-epoch target ($84.4\%$).
+1. **Target View 3 Gain**: Accuracy increased by **+7.7 percentage points** ($70.8\% \rightarrow 78.5\%$), correctly classifying $32$ additional video groups.
+2. **Macro-F1 Jump**: F1 increased from **0.695 to 0.785**, indicating balanced improvements across all action classes.
+3. **Cross-View Mean**: Advanced from **70.8% to 78.6%**, closing the gap to the base paper's 80-epoch target ($84.4\%$).

@@ -1,4 +1,12 @@
-"""NW-UCLA inventory, paired-view split, clip-consistent preprocessing."""
+"""NW-UCLA inventory, paired-view split, clip-consistent preprocessing.
+
+Supported evaluation protocols (--protocol flag in train.py):
+  cv1  Cross-View {2,3} -> 1  (held-out Camera View 1)
+  cv2  Cross-View {1,3} -> 2  (held-out Camera View 2)
+  cv3  Cross-View {1,2} -> 3  (held-out Camera View 3)  [default]
+  cs   Cross-Subject  Subjects 1-9 train, Subject 10 test  (all 3 views available;
+       training pairs drawn from views 1 & 2, test from view 3 as a proxy)
+"""
 from collections import defaultdict
 from pathlib import Path
 import random, re
@@ -11,6 +19,15 @@ ACTIONS = [1,2,3,4,5,6,8,9,11,12]
 ACTION_NAMES = ['Pick up with one hand','Pick up with two hands','Drop trash','Walk around','Sit down','Stand up','Put on a jacket','Take off a jacket','Throw','Carry']
 MEAN = np.array([.485,.456,.406], np.float32)
 STD = np.array([.229,.224,.225], np.float32)
+
+# Protocol definitions: (source_views, held_out_view)
+# For cross-subject we keep the same view pairing but split by subject.
+PROTOCOLS = {
+    'cv1': {'source': (1, 2), 'target': 0},   # 0-indexed: view indices 1,2 train; 0 test
+    'cv2': {'source': (0, 2), 'target': 1},
+    'cv3': {'source': (0, 1), 'target': 2},
+    'cs':  {'source': (0, 1), 'target': 2},   # same view pairing; split by subject
+}
 
 def inventory(root):
     root=Path(root)
@@ -61,11 +78,13 @@ def read_clip(path, frames=8, size=224, train=False):
     finally: cap.release()
 
 class VideoGroups(Dataset):
-    def __init__(self, groups, split, frames, size):
+    def __init__(self, groups, split, frames, size, source_views=(0,1), target_view=2):
         if split not in ('train','validation','test'): raise ValueError(split)
         self.groups=groups; self.split=split; self.frames=frames; self.size=size
+        self.source_views=source_views; self.target_view=target_view
     def __len__(self): return len(self.groups)
     def __getitem__(self,index):
-        group=self.groups[index]; views=(0,1) if self.split in ('train','validation') else (2,)
+        group=self.groups[index]
+        views=self.source_views if self.split in ('train','validation') else (self.target_view,)
         clips=torch.stack([read_clip(group['paths'][v],self.frames,self.size,self.split=='train') for v in views])
         return clips,torch.tensor(group['label'],dtype=torch.long)

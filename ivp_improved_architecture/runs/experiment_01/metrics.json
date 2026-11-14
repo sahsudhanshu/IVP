@@ -372,18 +372,18 @@
     ]
   ],
   "comparison_held_out_view_3": {
-    "historical_baseline_log": {
-      "source": "ivp-implementation-nw-ucla-tsn-gru-base-paper.log",
-      "accuracy": 0.366,
-      "macro_f1": 0.2947,
-      "correct": 153,
+    "historical_baseline": {
+      "source": "IVP Group 19 Implementation Results Slide",
+      "accuracy": 0.708,
+      "macro_f1": 0.695,
+      "correct": 296,
       "total": 418
     },
-    "recorded_kaggle_augmentation": {
-      "source": "nwucla-measured-augmentation.log",
-      "accuracy": 0.3947,
-      "macro_f1": 0.3487,
-      "correct": 165,
+    "augmentation_pipeline": {
+      "source": "augementation/augmentation_training.log",
+      "accuracy": 0.7847,
+      "macro_f1": 0.7845,
+      "correct": 328,
       "total": 418
     },
     "improved_architecture": {

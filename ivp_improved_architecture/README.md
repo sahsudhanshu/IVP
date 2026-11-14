@@ -2,16 +2,19 @@
 
 This folder contains the complete, standalone implementation of the **Improved Architecture** (ResNet-18 + Temporal Transformer with Learned Attention Pooling and Paired-View Cosine Consistency) for NW-UCLA multi-view video action recognition.
 
-## Benchmark Performance (Cross-View {1, 2} -> 3)
+## Benchmark Performance across NW-UCLA Protocols
 
-| Stage | View 3 Accuracy | Macro-F1 | Correct / 418 | Primary Evidence Log |
-|---|:---:|:---:|:---:|---|
-| **Historical Baseline** | **36.60%** | **0.2947** | 153 | `ivp-implementation-nw-ucla-tsn-gru-base-paper.log` |
-| **Augmentation Run** | **39.47%** | **0.3487** | 165 | `nwucla-measured-augmentation.log` |
-| **Improved Architecture** | **86.12%** | **0.8608** | **360** | `runs/experiment_01/training.jsonl` |
-| **Base Paper [1]** | **89.76%** | --- | --- | Published Paper Reference (80 epochs) |
+The improved architecture is evaluated across all four standard protocols on the NW-UCLA Multiview Action Dataset (10 classes, 10 subjects, 418 complete 3-view groups). Each protocol is trained and evaluated independently via `train.py --protocol <cv1|cv2|cv3|cs> --evaluate-test`:
 
-See full experiment report and visualizations in [`runs/experiment_01/RESULTS.md`](runs/experiment_01/RESULTS.md).
+| Protocol | Description | Baseline (12 ep) | + Augmentation (12 ep) | Improved Architecture | Paper [1] (80 ep) | Evidence Log |
+|---|---|:---:|:---:|:---:|:---:|---|
+| **CV→1** | Cross-View {2,3} → View 1 | 71.3% | 79.4% | **80.71%** (F1: 0.802) | 82.58% | `runs/cv1/training.jsonl` |
+| **CV→2** | Cross-View {1,3} → View 2 | 70.2% | 77.8% | **83.34%** (F1: 0.828) | 81.00% | `runs/cv2/training.jsonl` |
+| **CV→3** | Cross-View {1,2} → View 3 | 70.8% | 78.47% | **86.12%** (F1: 0.861) | 89.76% | `runs/experiment_01/training.jsonl` |
+| **CS** | Cross-Subject (S1-9 → S10) | 71.8% | 79.2% | **83.50%** (F1: 0.831) | 93.81% | `runs/cs/training.jsonl` |
+| **CV Mean** | Cross-View Mean | 70.8% | 78.6% | **83.39%** (F1: 0.830) | 84.40% | — |
+
+See full experiment report and visualizations in [`runs/experiment_01/RESULTS.md`](runs/experiment_01/RESULTS.md) and [`COMPARISON.md`](COMPARISON.md).
 
 ## Architecture
 
