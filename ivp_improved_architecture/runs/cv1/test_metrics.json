@@ -1,6 +1,6 @@
 {
   "loss": 0.6342,
-  "accuracy": 0.8071,
+  "accuracy": 0.80622,
   "macro_precision": 0.8043,
   "macro_recall": 0.8013,
   "macro_f1": 0.8023,

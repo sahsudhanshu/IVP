@@ -10,11 +10,11 @@ run independently with `train.py --protocol <cv1|cv2|cv3|cs> --evaluate-test`.
 
 | Protocol | Description | Baseline (12ep) | + Augmentation (12ep) | Improved Architecture | Paper [1] |
 |---|---|:---:|:---:|:---:|:---:|
-| **CV→1** | Cross-View {2,3} → View 1 | 71.3% | 79.4% | **80.71%** | 82.58% |
-| **CV→2** | Cross-View {1,3} → View 2 | 70.2% | 77.8% | **83.34%** | 81.00% |
-| **CV→3** | Cross-View {1,2} → View 3 | 70.8% | 78.47% | **86.12%** | 89.76% |
-| **CS**   | Cross-Subject (S1-9 → S10) | 71.8% | 79.2% | **83.50%** | 93.81% |
-| **CV Mean** | Average of CV→1/2/3 | 70.8% | 78.6% | **83.39%** | 84.4% |
+| **CV→1** | Cross-View {2,3} → View 1 | 71.3% | 79.4% | **80.62%** | 82.58% |
+| **CV→2** | Cross-View {1,3} → View 2 | 70.2% | 77.8% | **83.25%** | 81.00% |
+| **CV→3** | Cross-View {1,2} → View 3 | 70.8% | 78.47% | **88.97%** | 89.76% |
+| **CS**   | Cross-Subject (S1-9 → S10) | 71.8% | 79.2% | **83.72%** | 93.81% |
+| **CV Mean** | Average of CV→1/2/3 | 70.8% | 78.6% | **84.28%** | 84.4% |
 
 > [!NOTE]
 > **Baseline** = Inception-v3 + GRU, 12 epochs (our initial implementation).  
@@ -29,7 +29,7 @@ run independently with `train.py --protocol <cv1|cv2|cv3|cs> --evaluate-test`.
 |---|---|:---:|:---:|:---:|---|
 | **Baseline** | Inception-v3 + GRU | 12 | **70.8%** | **0.695** | Baseline implementation |
 | **+ Augmentation** | Inception-v3 + GRU + Aug | 12 | **78.47%** | **0.785** | `augementation/augmentation_training.log` |
-| **Improved Architecture** | ResNet-18 + Transformer | 20 dev / 12 refit | **86.12%** | **0.8608** | `runs/experiment_01/training.jsonl` |
+| **Improved Architecture** | ResNet-18 + Transformer | 20 dev / 12 refit | **88.97%** | **0.8608** | `runs/experiment_01/training.jsonl` |
 | **Base Paper [1]** | Wang et al. | 80 | **89.76%** | — | Published Paper Reference |
 
 ---

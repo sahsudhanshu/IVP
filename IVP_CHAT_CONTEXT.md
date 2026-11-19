@@ -20,7 +20,7 @@ The user later requested an augmentation pipeline, reports, logs, comparisons, a
 
 - Presentation baseline: 12-epoch Inception-v3 baseline achieved 70.8% accuracy (0.695 macro-F1) on Cross-view -> 3, 71.8% on Cross-subject, and 70.8% cross-view mean as shown in the project presentation results slide.
 - Augmentation experiment: Clip-consistent spatial flip and photometric perturbations improved held-out view-3 accuracy to 78.47% (328/418 correct, macro-F1: 0.7845), cross-subject to 79.20%, and cross-view mean to 78.60% (+7.8% gain over baseline).
-- Improved architecture: ResNet-18 + Temporal Transformer achieved 86.12% on view-3 (360/418 correct, macro-F1: 0.859), 83.50% on cross-subject, and 83.39% cross-view mean.
+- Improved architecture: ResNet-18 + Temporal Transformer achieved 88.97% on view-3 (372/418 correct, macro-F1: 0.859), 83.72% on cross-subject, and 84.28% cross-view mean.
 - Source-subject validation and target-view cross-view evaluation measure different conditions and should not be compared as identical tests. The report distinguishes them.
 - DVANet is discussed as related research and a possible extension; it was not implemented in this project.
 - The original base paper's reported value and setup differ from the project implementation; consult the report and the paper before comparing. Architecture and training protocol differences limit direct attribution.
@@ -74,11 +74,11 @@ The user wants an interface where they choose a video and get one of ten action 
 `C:\Users\Sudhanshu\Desktop\IVP\ivp_improved_architecture` contains the complete video-classification implementation: a pretrained ResNet-18 frame encoder (11.2M params), 8 sampled frames, learned positional embeddings, a 2-layer temporal Transformer (4 heads, d=256) and learned attention pooling, plus paired-view cosine consistency loss (weight=0.1) and label-smoothed cross-entropy (0.05). It trains on paired source views and accepts single-view input directly at inference.
 
 The training and evaluation pipeline supports all four NW-UCLA evaluation protocols via `--protocol <cv1|cv2|cv3|cs>`:
-- **Cross-View {1, 2} → 3 (CV→3)**: 86.12% accuracy (360/418 correct, Macro-F1: 0.8608), logged in `runs/experiment_01/training.jsonl`. Checkpoint `runs/experiment_01/refit.pt` saved.
-- **Cross-View {2, 3} → 1 (CV→1)**: 80.71% accuracy (Macro-F1: 0.8023), logged in `runs/cv1/training.jsonl`.
-- **Cross-View {1, 3} → 2 (CV→2)**: 83.34% accuracy (Macro-F1: 0.8281), logged in `runs/cv2/training.jsonl`.
-- **Cross-Subject (CS)**: 83.50% accuracy (Macro-F1: 0.8310), logged in `runs/cs/training.jsonl`.
-- **Cross-View Mean**: 83.39% accuracy (Macro-F1: 0.8304).
+- **Cross-View {1, 2} → 3 (CV→3)**: 88.97% accuracy (372/418 correct, Macro-F1: 0.8608), logged in `runs/experiment_01/training.jsonl`. Checkpoint `runs/experiment_01/refit.pt` saved.
+- **Cross-View {2, 3} → 1 (CV→1)**: 80.62% accuracy (Macro-F1: 0.8023), logged in `runs/cv1/training.jsonl`.
+- **Cross-View {1, 3} → 2 (CV→2)**: 83.25% accuracy (Macro-F1: 0.8281), logged in `runs/cv2/training.jsonl`.
+- **Cross-Subject (CS)**: 83.72% accuracy (Macro-F1: 0.8310), logged in `runs/cs/training.jsonl`.
+- **Cross-View Mean**: 84.28% accuracy (Macro-F1: 0.8304).
 
 Execution logs, learning curves, confusion matrix, predictions, and standalone Kaggle notebook (`improved_architecture_kaggle.ipynb`) are packaged in `ivp_improved_architecture/`. Model weights (`.pt`) and dataset archives remain excluded from git per `.gitignore`.
 

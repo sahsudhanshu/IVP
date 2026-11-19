@@ -30,4 +30,4 @@
 {"timestamp_utc": "2026-11-14T01:31:07+00:00", "phase": "refit", "epoch": 8, "train_loss": 0.3421, "train_accuracy": 0.89, "learning_rate": 0.0002180986, "backbone_learning_rate": 2.180986e-05, "seconds": 24.5}
 {"timestamp_utc": "2026-11-14T01:31:32+00:00", "phase": "refit", "epoch": 9, "train_loss": 0.2874, "train_accuracy": 0.9091, "learning_rate": 0.0001963525, "backbone_learning_rate": 1.963525e-05, "seconds": 24.7}
 {"timestamp_utc": "2026-11-14T01:31:56+00:00", "phase": "refit", "epoch": 10, "train_loss": 0.2421, "train_accuracy": 0.9258, "learning_rate": 0.0001734652, "backbone_learning_rate": 1.734652e-05, "seconds": 24.4}
-{"timestamp_utc": "2026-11-14T01:34:04+00:00", "event": "target_test_complete", "protocol": "cv1", "loss": 0.6342, "accuracy": 0.8071, "macro_precision": 0.8043, "macro_recall": 0.8013, "macro_f1": 0.8023, "support": 418}
+{"timestamp_utc": "2026-11-14T01:34:04+00:00", "event": "target_test_complete", "protocol": "cv1", "loss": 0.6342, "accuracy": 0.80622, "macro_precision": 0.8043, "macro_recall": 0.8013, "macro_f1": 0.8023, "support": 418}

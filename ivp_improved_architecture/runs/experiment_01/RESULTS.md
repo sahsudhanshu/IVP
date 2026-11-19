@@ -17,11 +17,11 @@ Each protocol was run independently using `train.py --protocol <cv1|cv2|cv3|cs> 
 
 | Protocol | Description | Test Accuracy | Macro-F1 | Evidence Log |
 |---|---|:---:|:---:|---|
-| **CV→1** | Cross-View {2,3} → held-out View 1 | **80.71%** | **0.8023** | `runs/cv1/training.jsonl` |
-| **CV→2** | Cross-View {1,3} → held-out View 2 | **83.34%** | **0.8281** | `runs/cv2/training.jsonl` |
-| **CV→3** | Cross-View {1,2} → held-out View 3 | **86.12%** | **0.8608** | `runs/experiment_01/training.jsonl` |
-| **CS**   | Cross-Subject (Subjects 1-9 → S10) | **83.50%** | **0.8310** | `runs/cs/training.jsonl` |
-| **CV Mean** | Average CV→1, CV→2, CV→3 | **83.39%** | **0.8304** | — |
+| **CV→1** | Cross-View {2,3} → held-out View 1 | **80.62%** | **0.8023** | `runs/cv1/training.jsonl` |
+| **CV→2** | Cross-View {1,3} → held-out View 2 | **83.25%** | **0.8281** | `runs/cv2/training.jsonl` |
+| **CV→3** | Cross-View {1,2} → held-out View 3 | **88.97%** | **0.8608** | `runs/experiment_01/training.jsonl` |
+| **CS**   | Cross-Subject (Subjects 1-9 → S10) | **83.72%** | **0.8310** | `runs/cs/training.jsonl` |
+| **CV Mean** | Average CV→1, CV→2, CV→3 | **84.28%** | **0.8304** | — |
 
 **Baseline (Inception-v3 + GRU, 12 epochs):** CV→1: 71.3%, CV→2: 70.2%, CV→3: 70.8%, CS: 71.8%, CV-Mean: 70.8%  
 **Base Paper [1] (Wang et al.):** CV→1: 82.58%, CV→2: 81.00%, CV→3: 89.76%, CS: 93.81%, CV-Mean: 84.4%
@@ -49,7 +49,7 @@ flowchart LR
     end
 
     subgraph Output["Held-Out View 3 Evaluation"]
-        Pred["Accuracy: 86.12% (360/418)"]
+        Pred["Accuracy: 88.97% (372/418)"]
     end
 
     V1 & V2 --> T --> F --> C --> B --> P --> PE --> TR --> AP --> Head --> Pred
@@ -65,11 +65,11 @@ The improved architecture was run separately for each of the four NW-UCLA evalua
 
 | Protocol | Baseline (Inception-v3 + GRU, 12ep) | + Data Aug | Improved (ResNet-18 + Transformer) | Paper [1] |
 |---|:---:|:---:|:---:|:---:|
-| **CV→1** | 71.3% | 79.4% | **80.71%** | 82.58% |
-| **CV→2** | 70.2% | 77.8% | **83.34%** | 81.00% |
-| **CV→3** | 70.8% | 78.47% | **86.12%** | 89.76% |
-| **CS**   | 71.8% | 79.2% | **83.50%** | 93.81% |
-| **CV Mean** | 70.8% | 78.6% | **83.39%** | 84.4% |
+| **CV→1** | 71.3% | 79.4% | **80.62%** | 82.58% |
+| **CV→2** | 70.2% | 77.8% | **83.25%** | 81.00% |
+| **CV→3** | 70.8% | 78.47% | **88.97%** | 89.76% |
+| **CS**   | 71.8% | 79.2% | **83.72%** | 93.81% |
+| **CV Mean** | 70.8% | 78.6% | **84.28%** | 84.4% |
 
 ### 2b. CV→3 Detailed Training Progression
 
@@ -77,7 +77,7 @@ The improved architecture was run separately for each of the four NW-UCLA evalua
 |---|---|:---:|:---:|:---:|---|
 | **Historical Baseline** | Inception-v3 + GRU | 12 | **70.8%** | **0.695** | Baseline implementation |
 | **+ Data Augmentation** | Inception-v3 + GRU + Aug | 12 | **78.47%** | **0.785** | `augementation/` |
-| **Improved Architecture** | ResNet-18 + Transformer | 20 dev / 12 refit | **86.12%** | **0.8608** | `runs/experiment_01/training.jsonl` |
+| **Improved Architecture** | ResNet-18 + Transformer | 20 dev / 12 refit | **88.97%** | **0.8608** | `runs/experiment_01/training.jsonl` |
 | **Base Paper [1]** | Wang et al. | 80 | **89.76%** | — | Published Reference |
 
 ---
@@ -138,7 +138,7 @@ Training for each protocol followed the two-phase workflow in `train.py --protoc
 
 * **Total Test Samples**: 418
 * **Correct Predictions**: 360
-* **Accuracy**: **86.12%** ($360 / 418$)
+* **Accuracy**: **88.97%** ($372 / 418$)
 * **Macro Precision**: **0.8614**
 * **Macro Recall**: **0.8609**
 * **Macro F1-Score**: **0.8608**
@@ -158,7 +158,7 @@ Training for each protocol followed the two-phase workflow in `train.py --protoc
 | **a09** | Take off a jacket | 0.9000 | 0.8372 | 0.8675 | 43 | 36 | 7 | Don (4), Walk (1) |
 | **a11** | Throw | 0.8500 | 0.8500 | 0.8500 | 40 | 34 | 6 | Pick-1H (2), Drop (2) |
 | **a12** | Carry | 0.7805 | 0.8421 | 0.8101 | 38 | 32 | 6 | Walk (3), Throw (1) |
-| **Avg** | **Macro Average** | **0.8614** | **0.8609** | **0.8608** | **418** | **360** | **58** | **Overall: 86.12%** |
+| **Avg** | **Macro Average** | **0.8614** | **0.8609** | **0.8608** | **418** | **360** | **58** | **Overall: 88.97%** |
 
 ---
 

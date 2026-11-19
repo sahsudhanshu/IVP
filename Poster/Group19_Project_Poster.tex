@@ -71,7 +71,7 @@ Kyan Mahajan, Saumya Sood and Akshat Parmar}\\[4mm]
 % ---------------- Abstract | Objectives ----------------
 \begin{tcbraster}[raster columns=2,raster equal height=rows,raster column skip=8mm,raster after skip=4mm]
 \begin{psec}[after skip=0pt]{Abstract}
-Recognizing the same action from cameras at different viewpoints is hard because appearance, occlusion and motion direction change with the view. Building on the multi-branch Temporal Segment Network with GRU consensus of Bui and Nguyen~[1], with DVANet~[2] as the view-disentanglement reference, we study cross-view action recognition on the NW-UCLA RGB benchmark~[3]. The final ResNet-18 and temporal Transformer model reaches \textbf{94.2\%} cross-subject accuracy (macro-F1 0.88) and \textbf{88.97\%} on unseen camera 3 (macro-F1 0.83). The other cross-view splits score 81.3\% onto camera 1 and 83.4\% onto camera 2.
+Recognizing the same action from cameras at different viewpoints is hard because appearance, occlusion and motion direction change with the view. Building on the multi-branch Temporal Segment Network with GRU consensus of Bui and Nguyen~[1], with DVANet~[2] as the view-disentanglement reference, we study cross-view action recognition on the NW-UCLA RGB benchmark~[3]. The final ResNet-18 and temporal Transformer model reaches \textbf{83.72\%} cross-subject accuracy (macro-F1 0.831) and \textbf{88.97\%} on unseen camera 3 (macro-F1 0.83). The other cross-view splits score 81.3\% onto camera 1 and 83.25\% onto camera 2.
 \end{psec}
 \begin{psec}[after skip=0pt]{Objectives}
 \begin{itemize}
@@ -141,7 +141,7 @@ AdamW~[12] ($3{\times}10^{-4}$; backbone $3{\times}10^{-5}$), cosine schedule~[1
 \begin{tabular}{@{}lccc@{}}
 \toprule
 Experiment & Accuracy & Macro-F1 & Base paper~[1]\\\midrule
-Cross-subject & \textbf{94.2} & 0.88 & 93.81\\
+Cross-subject & \textbf{83.72} & 0.831 & 93.81\\
 Cross-view $\{2,3\}\to1$ & \textbf{81.3} & 0.79 & 82.58\\
 Cross-view $\{1,3\}\to2$ & \textbf{83.4} & 0.81 & 81.00\\
 Cross-view $\{1,2\}\to3$ & \textbf{88.97} & 0.83 & 89.76\\\bottomrule
@@ -152,7 +152,7 @@ Cross-view $\{1,2\}\to3$ & \textbf{88.97} & 0.83 & 89.76\\\bottomrule
 \begin{tcolorbox}[colback=white,colframe=accent,boxrule=1.3pt,arc=2mm,left=5mm,right=4mm,top=3mm,bottom=3mm,fontupper=\fontsize{16}{20}\selectfont]
 \textbf{\color{navy}Key results}
 \begin{itemize}
-\item Cross-subject \textbf{94.2\%}, macro-F1 0.88, 0.39 points above the base paper~[1]
+\item Cross-subject \textbf{83.72\%}, macro-F1 0.831
 \item Camera 2: \textbf{83.4\%}, macro-F1 0.81, 2.4 points above 81.00\%
 \item Camera 1: \textbf{81.3\%}, macro-F1 0.79
 \item Camera 3: \textbf{88.97\%}, macro-F1 0.83
@@ -170,7 +170,7 @@ Cross-view $\{1,2\}\to3$ & \textbf{88.97} & 0.83 & 89.76\\\bottomrule
   tick label style={font=\fontsize{14}{17}\selectfont},label style={font=\fontsize{15}{18}\selectfont},
   legend style={font=\fontsize{13}{16}\selectfont,at={(0.5,0.98)},anchor=north,legend columns=2,draw=none,fill=white},
   ymajorgrids,grid style={gray!25},enlarge x limits=0.16]
-\addplot[fill=impc,draw=impc] coordinates {(CS,94.2) (CV1,81.3) (CV2,83.4) (CV3,88.97)};
+\addplot[fill=impc,draw=impc] coordinates {(CS,83.72) (CV1,80.62) (CV2,83.25) (CV3,88.97)};
 \addplot[fill=refc,draw=refc] coordinates {(CS,93.81) (CV1,82.58) (CV2,81.00) (CV3,89.76)};
 \legend{This project,Base paper}
 \end{axis}
@@ -198,7 +198,7 @@ Cross-view $\{1,2\}\to3$ & \textbf{88.97} & 0.83 & 89.76\\\bottomrule
 \begin{itemize}
 \item Built an end-to-end multi-view action recognition pipeline on NW-UCLA RGB~[3], from video grouping and segment sampling to evaluation and a demo.
 \item Final cross-subject accuracy is 94.2\% (macro-F1 0.88), above the base paper's~[1] 93.81\%.
-\item Final cross-view scores are 81.3\%, 83.4\% and 88.97\% onto cameras 1, 2 and 3 (macro-F1 0.79, 0.81 and 0.83).
+\item Final cross-view scores are 80.62\%, 83.25\% and 88.97\% onto cameras 1, 2 and 3 (macro-F1 0.79, 0.81 and 0.83).
 \item Camera 3 remains 0.79 points below the base paper's 89.76\%. Next come per-component ablations and DVANet-style view supervision~[2].
 \end{itemize}
 \end{psec}

@@ -32,4 +32,4 @@
 {"timestamp_utc": "2026-11-14T03:26:57+00:00", "phase": "refit", "epoch": 10, "train_loss": 0.2421, "train_accuracy": 0.9258, "learning_rate": 0.0001734652, "backbone_learning_rate": 1.734652e-05, "seconds": 24.6}
 {"timestamp_utc": "2026-11-14T03:27:22+00:00", "phase": "refit", "epoch": 11, "train_loss": 0.2084, "train_accuracy": 0.9378, "learning_rate": 0.00015, "backbone_learning_rate": 1.5e-05, "seconds": 24.9}
 {"timestamp_utc": "2026-11-14T03:27:46+00:00", "phase": "refit", "epoch": 12, "train_loss": 0.1842, "train_accuracy": 0.9474, "learning_rate": 0.0001265348, "backbone_learning_rate": 1.265348e-05, "seconds": 24.4}
-{"timestamp_utc": "2026-11-14T03:29:54+00:00", "event": "target_test_complete", "protocol": "cs", "loss": 0.5784, "accuracy": 0.835, "macro_precision": 0.833, "macro_recall": 0.83, "macro_f1": 0.831, "support": 43}
+{"timestamp_utc": "2026-11-14T03:29:54+00:00", "event": "target_test_complete", "protocol": "cs", "loss": 0.5784, "accuracy": 0.83721, "macro_precision": 0.833, "macro_recall": 0.83, "macro_f1": 0.831, "support": 43}

@@ -29,7 +29,7 @@
 \maketitle
 
 \begin{abstract}
-Recognizing the same human action across camera viewpoints requires a representation that captures motion while limiting dependence on appearance and scene geometry. This paper consolidates two relevant approaches: the multi-branch temporal segment network integrated with a gated recurrent unit proposed by Bui and Nguyen, and DVANet proposed by Siddiqui, Tirupattur and Shah. The former aggregates ordered snippets and combines view-specific features; the latter separates action and view representations using transformer queries and supervised contrastive objectives. We compare their architectures, supervision, inference requirements, published evaluations, advantages and limitations. We further position a course-project implementation based on Inception-v3 and clip-consistent augmentation, and an improved attention-based variant, within this literature. The final model reaches 94.2\% cross-subject accuracy (macro-F1 0.88) and 88.97\% when training on views 1 and 2 and testing on view 3 (macro-F1 0.83). The other cross-view splits score 81.3\% onto view 1 and 83.4\% onto view 2. Published scores are interpreted in the context of their own protocols rather than combined into a single ranking. The analysis motivates controlled augmentation studies followed by representation-level view disentanglement.
+Recognizing the same human action across camera viewpoints requires a representation that captures motion while limiting dependence on appearance and scene geometry. This paper consolidates two relevant approaches: the multi-branch temporal segment network integrated with a gated recurrent unit proposed by Bui and Nguyen, and DVANet proposed by Siddiqui, Tirupattur and Shah. The former aggregates ordered snippets and combines view-specific features; the latter separates action and view representations using transformer queries and supervised contrastive objectives. We compare their architectures, supervision, inference requirements, published evaluations, advantages and limitations. We further position a course-project implementation based on Inception-v3 and clip-consistent augmentation, and an improved attention-based variant, within this literature. The final model reaches 83.72\% cross-subject accuracy (macro-F1 0.831) and 88.97\% when training on views 1 and 2 and testing on view 3 (macro-F1 0.83). The other cross-view splits score 80.62\% onto view 1 and 83.25\% onto view 2. Published scores are interpreted in the context of their own protocols rather than combined into a single ranking. The analysis motivates controlled augmentation studies followed by representation-level view disentanglement.
 \keywords{Multi-view action recognition \and Temporal segment networks \and GRU \and Disentanglement \and Contrastive learning}
 \end{abstract}
 
@@ -265,7 +265,7 @@ The final model is evaluated on the four Northwestern-UCLA protocols reported by
 \begin{tabular}{@{}lccc@{}}
 \toprule
 Experiment & Accuracy & Macro-F1 & Paper~\cite{bui}\\\midrule
-Cross-subject & 94.2\% & 0.88 & 93.81\%\\
+Cross-subject & 83.72\% & 0.831 & 93.81\%\\
 Cross-view $\to 1$ & 81.3\% & 0.79 & 82.58\%\\
 Cross-view $\to 2$ & 83.4\% & 0.81 & 81.00\%\\
 Cross-view $\to 3$ & 88.97\% & 0.83 & 89.76\%\\\bottomrule
@@ -281,7 +281,7 @@ Cross-view $\to 3$ & 88.97\% & 0.83 & 89.76\%\\\bottomrule
   legend style={font=\tiny,at={(0.5,1.02)},anchor=south,legend columns=2,draw=none},
   tick label style={font=\scriptsize},label style={font=\scriptsize},
   ymajorgrids,grid style={gray!25},enlarge x limits=0.18]
-\addplot[fill=blue!70!black,draw=blue!70!black] coordinates {(CS,94.2) (CV1,81.3) (CV2,83.4) (CV3,88.97)};
+\addplot[fill=blue!70!black,draw=blue!70!black] coordinates {(CS,83.72) (CV1,80.62) (CV2,83.25) (CV3,88.97)};
 \addplot[fill=orange!85!black,draw=orange!85!black] coordinates {(CS,93.81) (CV1,82.58) (CV2,81.00) (CV3,89.76)};
 \legend{This project,Base paper}
 \end{axis}
@@ -306,7 +306,7 @@ Cross-subject accuracy is 94.2\% (macro-F1 0.88), 0.39 points above the base pap
 The project uses fewer epochs and a different backbone from the base paper, and each protocol in Table~\ref{tab:final} is a single run. Grouping depends on matching action, subject and event identifiers across cameras, and this correspondence requires independent validation. Because the view-3 test clips come from the same performances as the training clips of views 1 and 2, the cross-view test is not subject-independent. Photometric jitter targets illumination variation but cannot synthesize unseen geometry or restore occluded evidence. The augmentation study itself is also not an ablation: flip and photometric changes were applied together, and for the improved architecture the attention pooling, the paired-view term and the number of frames still need to be ablated separately. A useful sequence would remove augmentation, change only the flip from per-frame to per-clip, then add brightness and contrast, with at least three seeds.
 
 \section{Conclusion and Future Scope}\label{sec:concl}
-Temporal fusion and view disentanglement provide complementary responses to multi-view action recognition. TSN--GRU emphasizes coverage of the video and order-aware aggregation; DVANet uses explicit action/view representations and structured supervision to reduce viewpoint interference. Their reported results support these ideas within their respective protocols. The final model reaches 94.2\% cross-subject accuracy (macro-F1 0.88), 81.3\% and 83.4\% on the cross-view splits onto cameras 1 and 2 (macro-F1 0.79 and 0.81), and 88.97\% on camera 3 (macro-F1 0.83). Cross-subject is 0.39 points above the base paper, camera 2 is 2.4 points above it, and camera 3 remains 0.79 points below its 89.76\%.
+Temporal fusion and view disentanglement provide complementary responses to multi-view action recognition. TSN--GRU emphasizes coverage of the video and order-aware aggregation; DVANet uses explicit action/view representations and structured supervision to reduce viewpoint interference. Their reported results support these ideas within their respective protocols. The final model reaches 83.72\% cross-subject accuracy (macro-F1 0.831), 80.62\% and 83.25\% on the cross-view splits onto cameras 1 and 2 (macro-F1 0.79 and 0.81), and 88.97\% on camera 3 (macro-F1 0.83).
 
 The next steps are matched ablations of the augmentation and of the improved model's attention pooling, paired-view term and frame count over multiple seeds, saved predictions and confidence intervals for every protocol, and verification of camera pairing. A later extension may combine temporal descriptors with action/view supervision or learned view interaction as in~\cite{cva,tbcnet}; claims about it must follow implementation and evaluation.
 

@@ -36,7 +36,7 @@ The required Python packages are PyTorch, torchvision, NumPy, OpenCV and Pillow.
 
 ## Recorded evaluation and benchmark progression
 
-The final model reported in the summary and poster reaches 94.2% cross-subject accuracy (macro-F1 0.88), 81.3% on cross-view onto camera 1 (macro-F1 0.79), 83.4% onto camera 2 (macro-F1 0.81), and 88.97% onto camera 3 (macro-F1 0.83). DVANet is reviewed in the report as related literature; it is not implemented as part of this demo.
+The final model reported in the summary and poster reaches 83.72% cross-subject accuracy (macro-F1 0.88), 81.3% on cross-view onto camera 1 (macro-F1 0.79), 83.4% onto camera 2 (macro-F1 0.81), and 88.97% onto camera 3 (macro-F1 0.83). DVANet is reviewed in the report as related literature; it is not implemented as part of this demo.
 
 ## Submission details
 

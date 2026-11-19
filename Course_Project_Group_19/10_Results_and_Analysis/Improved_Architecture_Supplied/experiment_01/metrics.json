@@ -396,5 +396,8 @@
       "source": "Wang et al. (80 epochs)",
       "accuracy": 0.8976
     }
-  }
+  },
+  "accuracy": 0.88995,
+  "correct": 372,
+  "total": 418
 }

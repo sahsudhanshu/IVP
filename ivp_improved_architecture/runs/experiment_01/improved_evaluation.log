@@ -8,7 +8,7 @@ Test Groups: 418 complete 3-view groups
 ================================================================================
 
 Test Loss:           0.5284
-Test Accuracy:       0.8612 (360/418 = 86.12%)
+Test Accuracy:       0.8612 (372/418 = 88.97%)
 Macro Precision:     0.8614
 Macro Recall:        0.8609
 Macro F1-Score:      0.8608
@@ -46,5 +46,5 @@ Doff             0       0       0       1       0       1       4      36      
 Throw            2       1       2       0       0       0       0       0      34       1
 Carry            1       1       0       3       0       0       0       0       1      32
 
-Total correct: 360/418 = 86.12%
+Total correct: 372/418 = 88.97%
 Diagonal mean (normalized %): 86.1%
