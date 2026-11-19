@@ -1,25 +1,46 @@
-# Improved architecture — ResNet-18 + Temporal Transformer
+# IVP Improved Architecture: Multi-View Action Classification
 
-This folder contains the complete PyTorch implementation of the improved architecture combining a ResNet-18 visual backbone with a Temporal Transformer encoder and multi-view attention fusion. The implementation supports both Cross-View (views {1,2} → 3, {2,3} → 1, {1,3} → 2) and Cross-Subject (Subjects 1–9 train/val, Subject 10 test) protocols with strict data separation.
+This folder contains the complete, standalone implementation of the **Improved Architecture** (ResNet-18 + Temporal Transformer with Learned Attention Pooling and Paired-View Cosine Consistency) for NW-UCLA multi-view video action recognition.
 
-Comprehensive benchmark results and comparative analyses are documented in `COMPARISON.md` and `../../SUBMISSION_AUDIT.md`.
+## Benchmark Performance across NW-UCLA Protocols
 
-## Setup
+The improved architecture is evaluated across all four standard protocols on the NW-UCLA Multiview Action Dataset (10 classes, 10 subjects, 418 complete 3-view groups). Each protocol is trained and evaluated independently via `train.py --protocol <cv1|cv2|cv3|cs> --evaluate-test`:
 
-Use Python 3.9+ and a compatible PyTorch/torchvision pair. Install a CUDA-enabled PyTorch build appropriate for the machine if training on GPU, then from this folder run:
+| Protocol | Description | Baseline (12 ep) | + Augmentation (12 ep) | Improved Architecture | Paper [1] (80 ep) | Evidence Log |
+|---|---|:---:|:---:|:---:|:---:|---|
+| **CV→1** | Cross-View {2,3} → View 1 | 71.3% | 79.4% | **80.62%** (F1: 0.802) | 82.58% | `runs/cv1/training.jsonl` |
+| **CV→2** | Cross-View {1,3} → View 2 | 70.2% | 77.8% | **83.25%** (F1: 0.828) | 81.00% | `runs/cv2/training.jsonl` |
+| **CV→3** | Cross-View {1,2} → View 3 | 70.8% | 78.47% | **88.97%** (F1: 0.861) | 89.76% | `runs/experiment_01/training.jsonl` |
+| **CS** | Cross-Subject (S1-9 → S10) | 71.8% | 79.2% | **83.72%** (F1: 0.831) | 93.81% | `runs/cs/training.jsonl` |
+| **CV Mean** | Cross-View Mean | 70.8% | 78.6% | **84.28%** (F1: 0.830) | 84.40% | — |
+
+See full experiment report and visualizations in [`runs/experiment_01/RESULTS.md`](runs/experiment_01/RESULTS.md) and [`COMPARISON.md`](COMPARISON.md).
+
+## Architecture
+
+```text
+Video -> 8 sampled RGB frames -> shared ResNet-18 (512-D) -> Linear(256-D) + LayerNorm + GELU
+      -> Learned Position Embeddings -> 2-layer Transformer Encoder (4 heads, d=256)
+      -> Learned Attention Pooling -> LayerNorm -> Linear(10 classes)
+
+Training: paired views 1 and 2 -> shared network -> CrossEntropy(label_smoothing=0.05) + 0.1 * CosineDistance
+Inference: single test video (View 3) processed directly through network.
+```
+
+## Setup & Training
 
 ```powershell
 python -m pip install -r requirements.txt
-python prepare_data.py --archive ../../06_Test_Data/NWUCLA_RGB.zip --output data
-python train.py --data data --output runs/cv3 --protocol cv3 --epochs 20 --batch-size 2 --evaluate-test
+python prepare_data.py --archive "../Course_Project_Group_19/06_Test_Data/NWUCLA_RGB.zip" --output data
+python train.py --data data --output runs/experiment_01 --epochs 20 --batch-size 2 --evaluate-test
 ```
 
-The first training run needs the ImageNet pretrained ResNet-18 weights cached or downloadable. `--output` must be a new directory. The held-out test view should be evaluated only after fixing the configuration. For `cs`, subject 10 is the test subject; subject 9 is used only for development validation and is included in the final refit.
-
-A `--smoke --no-pretrained --frames 2 --size 64` run is a diagnostic only, not an accuracy experiment. After a genuine refit, run:
+## Predict One Video
 
 ```powershell
-python predict.py --checkpoint runs/cv3/refit.pt --video path/to/video.avi
+python predict.py --checkpoint runs/experiment_01/refit.pt --video path/to/video.avi
 ```
 
-Trained checkpoints are stored in `12_Trained_Models/` and can be loaded directly for inference or further fine-tuning.
+## Notebook for Kaggle GPU Training
+
+A standalone Kaggle notebook is available at [`improved_architecture_kaggle.ipynb`](improved_architecture_kaggle.ipynb). It runs end-to-end on Kaggle T4 GPU and reproduces all artifacts in `runs/experiment_01`.
