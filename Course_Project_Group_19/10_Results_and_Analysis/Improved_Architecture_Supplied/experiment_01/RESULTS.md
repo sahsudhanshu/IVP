@@ -158,7 +158,7 @@ Training for each protocol followed the two-phase workflow in `train.py --protoc
 | **a09** | Take off a jacket | 0.9000 | 0.8372 | 0.8675 | 43 | 36 | 7 | Don (4), Walk (1) |
 | **a11** | Throw | 0.8500 | 0.8500 | 0.8500 | 40 | 34 | 6 | Pick-1H (2), Drop (2) |
 | **a12** | Carry | 0.7805 | 0.8421 | 0.8101 | 38 | 32 | 6 | Walk (3), Throw (1) |
-| **Avg** | **Macro Average** | **0.8614** | **0.8609** | **0.8608** | **418** | **360** | **58** | **Overall: 88.97%** |
+| **Avg** | **Macro Average** | **0.8614** | **0.8609** | **0.8608** | **418** | **372** | **46** | **Overall: 88.97%** |
 
 ---
 
