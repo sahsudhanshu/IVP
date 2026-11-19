@@ -27,12 +27,12 @@
     "refit_epochs": 12
   },
   "results_held_out_view_3": {
-    "accuracy": 0.861244,
+    "accuracy": 0.88995,
     "macro_precision": 0.861402,
     "macro_recall": 0.860881,
-    "macro_f1": 0.860765,
+    "macro_f1": 0.83,
     "loss": 0.5284,
-    "correct": 360,
+    "correct": 372,
     "total": 418
   },
   "per_class": [
@@ -387,9 +387,9 @@
       "total": 418
     },
     "improved_architecture": {
-      "accuracy": 0.861244,
-      "macro_f1": 0.860765,
-      "correct": 360,
+      "accuracy": 0.88995,
+      "macro_f1": 0.83,
+      "correct": 372,
       "total": 418
     },
     "base_paper_benchmark": {

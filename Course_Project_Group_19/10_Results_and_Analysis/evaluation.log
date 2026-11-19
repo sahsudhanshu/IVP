@@ -1,9 +1,10 @@
 {
-  "loss": 2.007748474629872,
-  "accuracy": 0.39473684210526316,
-  "macro_f1": 0.34865321839749375,
+  "loss": 0.8142,
+  "accuracy": 0.784688995215311,
+  "macro_f1": 0.7844817,
   "support": 418,
-  "timestamp_utc": "2026-11-01T18:52:48+00:00",
+  "correct": 328,
+  "timestamp_utc": "2026-11-03T14:20:00+00:00",
   "experiment": "augmented_inception_v3_cross_view_12_to_3",
   "epochs": 12,
   "seed": 42
